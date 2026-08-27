@@ -44,6 +44,7 @@ final class LocalizationManager {
         case "btn_open_folder": return isZh ? "在访达中打开" : "Open in Finder"
         case "btn_zip": return isZh ? "全部打包为 ZIP" : "Zip All"
         case "btn_clear": return isZh ? "清空全部" : "Clear All"
+        case "btn_clear_hotkey": return isZh ? "清除快捷键 (不绑定)" : "Clear Shortcut (Unbind)"
         case "quicklook": return isZh ? "空格预览" : "Quick Look"
         
         // Empty State
@@ -52,6 +53,7 @@ final class LocalizationManager {
         
         // Menu Bar
         case "menu_toggle": return isZh ? "📦 展开/收起文件中转站 (%@)" : "📦 Toggle File Relay (%@)"
+        case "menu_toggle_no_key": return isZh ? "📦 展开/收起文件中转站" : "📦 Toggle File Relay"
         case "menu_settings": return isZh ? "⚙️ 偏好设置..." : "⚙️ Preferences..."
         case "menu_autoclean": return isZh ? "⏱️ 自动清理设置" : "⏱️ Auto-Clean Retention"
         case "menu_clear": return isZh ? "🗑️ 清空中转站全部文件" : "🗑️ Clear All Files"
@@ -71,7 +73,8 @@ final class LocalizationManager {
         case "settings_general": return isZh ? "通用" : "General"
         case "settings_language": return isZh ? "界面语言：" : "Language:"
         case "settings_hotkey": return isZh ? "全局呼出快捷键：" : "Global Shortcut:"
-        case "settings_hotkey_hint": return isZh ? "点击输入框直接按下新的组合键（如 ⌥D、⌘⇧D）" : "Click the field and press your new hotkey combination"
+        case "settings_hotkey_hint": return isZh ? "点击录制新按键，点 ✖️ 可不绑定快捷键" : "Click to record, or click ✖️ to unbind shortcut"
+        case "hotkey_none": return isZh ? "无" : "None"
         case "settings_shake": return isZh ? "拖拽文件时摇晃光标就地弹出" : "Shake cursor to summon while dragging files"
         case "settings_shake_desc": return isZh ? "开启后，按住文件晃动两下鼠标即可就地展开中转站" : "When enabled, wiggling your mouse triggers the shelf beside cursor"
         

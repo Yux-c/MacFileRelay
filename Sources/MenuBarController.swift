@@ -38,9 +38,15 @@ final class MenuBarController {
     
     private func showMenu() {
         let menu = NSMenu()
-        let shortcutStr = HotkeyManager.shared.currentShortcut.displayString
         
-        let toggleItem = NSMenuItem(title: String(format: L("menu_toggle"), shortcutStr), action: #selector(toggleShelf), keyEquivalent: "")
+        let toggleTitle: String
+        if let shortcut = HotkeyManager.shared.currentShortcut {
+            toggleTitle = String(format: L("menu_toggle"), shortcut.displayString)
+        } else {
+            toggleTitle = L("menu_toggle_no_key")
+        }
+        
+        let toggleItem = NSMenuItem(title: toggleTitle, action: #selector(toggleShelf), keyEquivalent: "")
         toggleItem.target = self
         menu.addItem(toggleItem)
         

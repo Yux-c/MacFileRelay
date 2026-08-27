@@ -88,10 +88,15 @@ final class HotkeyManager {
     static let shared = HotkeyManager()
     
     private let hotkeyKey = "MacFileRelay_Shortcut"
+    private let isUnboundKey = "MacFileRelay_Shortcut_Unbound"
+    
     var onShortcutTriggered: (() -> Void)?
     
-    var currentShortcut: SavedShortcut {
+    var currentShortcut: SavedShortcut? {
         get {
+            if UserDefaults.standard.bool(forKey: isUnboundKey) {
+                return nil
+            }
             guard let data = UserDefaults.standard.data(forKey: hotkeyKey),
                   let shortcut = try? JSONDecoder().decode(SavedShortcut.self, from: data) else {
                 return .default
@@ -99,11 +104,22 @@ final class HotkeyManager {
             return shortcut
         }
         set {
-            if let data = try? JSONEncoder().encode(newValue) {
-                UserDefaults.standard.set(data, forKey: hotkeyKey)
-                NotificationCenter.default.post(name: .shortcutDidChange, object: nil)
+            if let newValue = newValue {
+                UserDefaults.standard.set(false, forKey: isUnboundKey)
+                if let data = try? JSONEncoder().encode(newValue) {
+                    UserDefaults.standard.set(data, forKey: hotkeyKey)
+                }
+            } else {
+                // Unbound / Cleared
+                UserDefaults.standard.set(true, forKey: isUnboundKey)
+                UserDefaults.standard.removeObject(forKey: hotkeyKey)
             }
+            NotificationCenter.default.post(name: .shortcutDidChange, object: nil)
         }
+    }
+    
+    var displayString: String {
+        currentShortcut?.displayString ?? L("hotkey_none")
     }
     
     private init() {
@@ -124,7 +140,8 @@ final class HotkeyManager {
     
     @discardableResult
     private func checkEvent(_ event: NSEvent) -> Bool {
-        let shortcut = currentShortcut
+        guard let shortcut = currentShortcut else { return false }
+        
         let flags = event.modifierFlags.intersection([.command, .option, .shift, .control])
         let expectedFlags = NSEvent.ModifierFlags(rawValue: shortcut.modifierFlags).intersection([.command, .option, .shift, .control])
         

@@ -25,11 +25,12 @@ final class HotkeyRecorderView: NSButton {
     func updateTitle() {
         let isZh = LocalizationManager.shared.currentLanguage == .chinese
         if isRecording {
-            title = isZh ? "⌨️ 请直接按下新组合键..." : "⌨️ Press new shortcut..."
+            title = isZh ? "⌨️ 按新键或按退格清除..." : "⌨️ Press key or Delete..."
             layer?.borderColor = NSColor.controlAccentColor.cgColor
             layer?.borderWidth = 1.5
         } else {
-            title = "  " + HotkeyManager.shared.currentShortcut.displayString + "  "
+            let str = HotkeyManager.shared.displayString
+            title = "  " + str + "  "
             layer?.borderColor = NSColor.separatorColor.cgColor
             layer?.borderWidth = 1.0
         }
@@ -53,6 +54,14 @@ final class HotkeyRecorderView: NSButton {
             
             // Allow ESC to cancel recording
             if event.keyCode == 53 {
+                self.stopRecording()
+                return nil
+            }
+            
+            // Allow Delete / Backspace to clear shortcut (unbind)
+            if event.keyCode == 51 || event.keyCode == 117 {
+                HotkeyManager.shared.currentShortcut = nil
+                NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
                 self.stopRecording()
                 return nil
             }
@@ -99,7 +108,8 @@ final class SettingsWindowController: NSWindowController {
     
     // Hotkey Section
     private let hotkeyTitle = NSTextField(labelWithString: "")
-    private let hotkeyRecorder = HotkeyRecorderView(frame: NSRect(x: 0, y: 0, width: 140, height: 28))
+    private let hotkeyRecorder = HotkeyRecorderView(frame: NSRect(x: 0, y: 0, width: 120, height: 28))
+    private let hotkeyClearBtn = NSButton()
     private let hotkeyResetBtn = NSButton()
     private let hotkeyHint = NSTextField(labelWithString: "")
     
@@ -113,7 +123,7 @@ final class SettingsWindowController: NSWindowController {
     
     init() {
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 440, height: 350),
+            contentRect: NSRect(x: 0, y: 0, width: 450, height: 350),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -148,7 +158,7 @@ final class SettingsWindowController: NSWindowController {
         // Window Title
         titleLabel.font = NSFont.systemFont(ofSize: 15, weight: .bold)
         titleLabel.textColor = .labelColor
-        titleLabel.frame = NSRect(x: 24, y: contentView.bounds.height - 48, width: 380, height: 24)
+        titleLabel.frame = NSRect(x: 24, y: contentView.bounds.height - 48, width: 390, height: 24)
         visualEffect.addSubview(titleLabel)
         
         var currentY = contentView.bounds.height - 90
@@ -158,7 +168,7 @@ final class SettingsWindowController: NSWindowController {
         langTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
         visualEffect.addSubview(langTitle)
         
-        langPopup.frame = NSRect(x: 170, y: currentY - 2, width: 230, height: 26)
+        langPopup.frame = NSRect(x: 170, y: currentY - 2, width: 240, height: 26)
         for lang in AppLanguage.allCases {
             langPopup.addItem(withTitle: lang.displayName)
         }
@@ -173,19 +183,31 @@ final class SettingsWindowController: NSWindowController {
         hotkeyTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
         visualEffect.addSubview(hotkeyTitle)
         
-        hotkeyRecorder.frame = NSRect(x: 170, y: currentY - 3, width: 140, height: 28)
+        hotkeyRecorder.frame = NSRect(x: 170, y: currentY - 3, width: 120, height: 28)
         visualEffect.addSubview(hotkeyRecorder)
         
+        // Clear Hotkey (X button)
+        hotkeyClearBtn.bezelStyle = .texturedRounded
+        hotkeyClearBtn.isBordered = false
+        hotkeyClearBtn.image = NSImage(systemSymbolName: "xmark.circle.fill", accessibilityDescription: "Clear Shortcut")?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 14, weight: .medium))
+        hotkeyClearBtn.contentTintColor = NSColor.secondaryLabelColor
+        hotkeyClearBtn.frame = NSRect(x: 296, y: currentY - 1, width: 24, height: 24)
+        hotkeyClearBtn.target = self
+        hotkeyClearBtn.action = #selector(clearHotkey)
+        visualEffect.addSubview(hotkeyClearBtn)
+        
+        // Reset Hotkey Button
         hotkeyResetBtn.bezelStyle = .rounded
-        hotkeyResetBtn.title = "重置"
-        hotkeyResetBtn.frame = NSRect(x: 320, y: currentY - 3, width: 80, height: 28)
+        hotkeyResetBtn.title = "恢复默认"
+        hotkeyResetBtn.frame = NSRect(x: 326, y: currentY - 3, width: 85, height: 28)
         hotkeyResetBtn.target = self
         hotkeyResetBtn.action = #selector(resetHotkey)
         visualEffect.addSubview(hotkeyResetBtn)
         
         hotkeyHint.font = NSFont.systemFont(ofSize: 10, weight: .regular)
         hotkeyHint.textColor = .secondaryLabelColor
-        hotkeyHint.frame = NSRect(x: 170, y: currentY - 22, width: 240, height: 16)
+        hotkeyHint.frame = NSRect(x: 170, y: currentY - 22, width: 250, height: 16)
         visualEffect.addSubview(hotkeyHint)
         
         currentY -= 60
@@ -195,7 +217,7 @@ final class SettingsWindowController: NSWindowController {
         autoCleanTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
         visualEffect.addSubview(autoCleanTitle)
         
-        autoCleanPopup.frame = NSRect(x: 170, y: currentY - 2, width: 230, height: 26)
+        autoCleanPopup.frame = NSRect(x: 170, y: currentY - 2, width: 240, height: 26)
         autoCleanPopup.target = self
         autoCleanPopup.action = #selector(autoCleanChanged)
         visualEffect.addSubview(autoCleanPopup)
@@ -203,14 +225,14 @@ final class SettingsWindowController: NSWindowController {
         currentY -= 50
         
         // 4. Shake Section
-        shakeCheckbox.frame = NSRect(x: 24, y: currentY, width: 380, height: 20)
+        shakeCheckbox.frame = NSRect(x: 24, y: currentY, width: 390, height: 20)
         shakeCheckbox.target = self
         shakeCheckbox.action = #selector(shakeToggled)
         visualEffect.addSubview(shakeCheckbox)
         
         shakeDesc.font = NSFont.systemFont(ofSize: 10, weight: .regular)
         shakeDesc.textColor = .secondaryLabelColor
-        shakeDesc.frame = NSRect(x: 44, y: currentY - 18, width: 360, height: 16)
+        shakeDesc.frame = NSRect(x: 44, y: currentY - 18, width: 370, height: 16)
         visualEffect.addSubview(shakeDesc)
         
         refreshText()
@@ -224,6 +246,7 @@ final class SettingsWindowController: NSWindowController {
         langPopup.selectItem(withTitle: LocalizationManager.shared.currentLanguage.displayName)
         
         hotkeyTitle.stringValue = L("settings_hotkey")
+        hotkeyClearBtn.toolTip = L("btn_clear_hotkey")
         hotkeyResetBtn.title = isZh ? "恢复默认" : "Reset"
         hotkeyHint.stringValue = L("settings_hotkey_hint")
         hotkeyRecorder.updateTitle()
@@ -264,8 +287,15 @@ final class SettingsWindowController: NSWindowController {
         }
     }
     
+    @objc private func clearHotkey() {
+        HotkeyManager.shared.currentShortcut = nil
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        hotkeyRecorder.updateTitle()
+    }
+    
     @objc private func resetHotkey() {
         HotkeyManager.shared.currentShortcut = .default
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         hotkeyRecorder.updateTitle()
     }
     
