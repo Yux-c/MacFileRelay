@@ -7,7 +7,7 @@ final class FloatingShelfView: NSView {
     
     let backgroundEffect = NSVisualEffectView()
     let headerView = NSView()
-    let titleLabel = NSTextField(labelWithString: "📦 文件中转站")
+    let titleLabel = NSTextField(labelWithString: "")
     let countLabel = NSTextField(labelWithString: "")
     let autoCleanBadge = NSTextField(labelWithString: "")
     
@@ -25,6 +25,8 @@ final class FloatingShelfView: NSView {
         wantsLayer = true
         setupViews()
         registerForDraggedTypes([.fileURL, .URL, .png, .tiff])
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateLocalizedTexts), name: .languageDidChange, object: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -53,17 +55,17 @@ final class FloatingShelfView: NSView {
         
         titleLabel.font = NSFont.systemFont(ofSize: 13, weight: .bold)
         titleLabel.textColor = .labelColor
-        titleLabel.frame = NSRect(x: 16, y: 10, width: 78, height: 20)
+        titleLabel.frame = NSRect(x: 16, y: 10, width: 88, height: 20)
         headerView.addSubview(titleLabel)
         
         countLabel.font = NSFont.systemFont(ofSize: 11, weight: .medium)
         countLabel.textColor = .secondaryLabelColor
-        countLabel.frame = NSRect(x: 96, y: 10, width: 140, height: 20)
+        countLabel.frame = NSRect(x: 108, y: 10, width: 140, height: 20)
         headerView.addSubview(countLabel)
         
         autoCleanBadge.font = NSFont.systemFont(ofSize: 10, weight: .regular)
         autoCleanBadge.textColor = .tertiaryLabelColor
-        autoCleanBadge.frame = NSRect(x: 240, y: 11, width: 100, height: 18)
+        autoCleanBadge.frame = NSRect(x: 250, y: 11, width: 100, height: 18)
         headerView.addSubview(autoCleanBadge)
         
         // Close Button
@@ -87,7 +89,7 @@ final class FloatingShelfView: NSView {
         settingsButton.frame = NSRect(x: bounds.width - 58, y: 8, width: 22, height: 22)
         settingsButton.autoresizingMask = [.minXMargin]
         settingsButton.target = self
-        settingsButton.action = #selector(showSettingsMenu)
+        settingsButton.action = #selector(showSettingsClicked)
         headerView.addSubview(settingsButton)
         
         // Open Folder Button
@@ -141,27 +143,42 @@ final class FloatingShelfView: NSView {
         scrollView.documentView = shelfGridView
         backgroundEffect.addSubview(scrollView)
         
-        updateItemCount()
+        updateLocalizedTexts()
         
         addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self, userInfo: nil))
+    }
+    
+    @objc func updateLocalizedTexts() {
+        titleLabel.stringValue = L("shelf_title")
+        titleLabel.sizeToFit()
+        titleLabel.frame = NSRect(x: 16, y: 10, width: titleLabel.frame.width, height: 20)
+        
+        closeButton.toolTip = L("btn_close")
+        settingsButton.toolTip = L("btn_settings")
+        openFolderButton.toolTip = L("btn_open_folder")
+        zipButton.toolTip = L("btn_zip")
+        clearAllButton.toolTip = L("btn_clear")
+        
+        updateItemCount()
+        shelfGridView.updateEmptyStateText()
     }
     
     func updateItemCount() {
         let count = StorageManager.shared.items.count
         if count > 0 {
             let size = StorageManager.shared.totalFormattedSize
-            countLabel.stringValue = "\(count) 项 · \(size)"
+            countLabel.stringValue = String(format: L("items_count"), count, size)
         } else {
-            countLabel.stringValue = "空空如也"
+            countLabel.stringValue = L("empty_state")
         }
         countLabel.sizeToFit()
         countLabel.frame = NSRect(x: titleLabel.frame.maxX + 6, y: 10, width: countLabel.frame.width, height: 20)
         
         let hours = AutoCleanManager.shared.retentionHours
         if hours > 0 {
-            autoCleanBadge.stringValue = "· \(hours)h 自动清理"
+            autoCleanBadge.stringValue = String(format: L("auto_clean_badge"), hours)
         } else {
-            autoCleanBadge.stringValue = "· 手动清理"
+            autoCleanBadge.stringValue = L("manual_clean_badge")
         }
         autoCleanBadge.sizeToFit()
         autoCleanBadge.frame = NSRect(x: countLabel.frame.maxX + 6, y: 11, width: autoCleanBadge.frame.width, height: 18)
@@ -201,41 +218,8 @@ final class FloatingShelfView: NSView {
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: StorageManager.shared.storageDirectory.path)
     }
     
-    @objc private func showSettingsMenu() {
-        let menu = NSMenu()
-        let hours = AutoCleanManager.shared.retentionHours
-        
-        menu.addItem(NSMenuItem(title: "⏱️ 自动清理设置：", action: nil, keyEquivalent: ""))
-        menu.addItem(NSMenuItem.separator())
-        
-        let options: [(String, Int)] = [
-            ("1 小时后自动清理", 1),
-            ("12 小时后自动清理", 12),
-            ("24 小时后自动清理 (推荐)", 24),
-            ("3 天后自动清理", 72),
-            ("7 天后自动清理", 168),
-            ("永不自动清理 (仅手动)", 0)
-        ]
-        
-        for (title, h) in options {
-            let item = NSMenuItem(title: title, action: #selector(changeAutoCleanHour(_:)), keyEquivalent: "")
-            item.target = self
-            item.tag = h
-            item.state = (hours == h) ? .on : .off
-            menu.addItem(item)
-        }
-        
-        menu.addItem(NSMenuItem.separator())
-        let openItem = NSMenuItem(title: "📂 在访达中打开暂存目录", action: #selector(openFolderClicked), keyEquivalent: "")
-        openItem.target = self
-        menu.addItem(openItem)
-        
-        menu.popUp(positioning: nil, at: NSPoint(x: settingsButton.frame.minX, y: settingsButton.frame.minY), in: headerView)
-    }
-    
-    @objc private func changeAutoCleanHour(_ sender: NSMenuItem) {
-        AutoCleanManager.shared.retentionHours = sender.tag
-        updateItemCount()
+    @objc private func showSettingsClicked() {
+        SettingsWindowController.shared.showSettings()
     }
     
     // MARK: - Drag & Drop Destination
@@ -306,13 +290,9 @@ final class FloatingShelfWindow: NSPanel {
         shelfView.windowController = self
         contentView?.addSubview(shelfView)
         
-        // Global Hotkey Option+D to toggle near cursor
-        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.modifierFlags.contains(.option) && event.keyCode == 2 { // 'd'
-                DispatchQueue.main.async {
-                    self?.toggleShelf()
-                }
-            }
+        // Listen to Hotkey Trigger
+        HotkeyManager.shared.onShortcutTriggered = { [weak self] in
+            self?.toggleShelf()
         }
         
         // Spacebar & ESC Key monitor

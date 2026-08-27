@@ -7,18 +7,24 @@ final class MenuBarController {
     init(shelfWindow: FloatingShelfWindow) {
         self.shelfWindow = shelfWindow
         setupStatusItem()
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMenu), name: .languageDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMenu), name: .shortcutDidChange, object: nil)
     }
     
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "tray.and.arrow.down.fill", accessibilityDescription: "ShakeDrop")?
+            button.image = NSImage(systemSymbolName: "tray.and.arrow.down.fill", accessibilityDescription: "MacFileRelay")?
                 .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 13, weight: .medium))
             button.target = self
             button.action = #selector(statusBarClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
+    }
+    
+    @objc private func updateMenu() {
+        // Updated on demand when clicked
     }
     
     @objc private func statusBarClicked(_ sender: NSStatusBarButton) {
@@ -32,23 +38,27 @@ final class MenuBarController {
     
     private func showMenu() {
         let menu = NSMenu()
+        let shortcutStr = HotkeyManager.shared.currentShortcut.displayString
         
-        let toggleItem = NSMenuItem(title: "📦 展开/收起文件中转站 (⌥D)", action: #selector(toggleShelf), keyEquivalent: "d")
-        toggleItem.keyEquivalentModifierMask = .option
+        let toggleItem = NSMenuItem(title: String(format: L("menu_toggle"), shortcutStr), action: #selector(toggleShelf), keyEquivalent: "")
         toggleItem.target = self
         menu.addItem(toggleItem)
+        
+        let settingsItem = NSMenuItem(title: L("menu_settings"), action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
         
         menu.addItem(NSMenuItem.separator())
         
         let hours = AutoCleanManager.shared.retentionHours
         let autoCleanSubmenu = NSMenu()
         let options: [(String, Int)] = [
-            ("1 小时后自动清理", 1),
-            ("12 小时后自动清理", 12),
-            ("24 小时后自动清理 (推荐)", 24),
-            ("3 天后自动清理", 72),
-            ("7 天后自动清理", 168),
-            ("永不自动清理 (仅手动)", 0)
+            (L("autoclean_1h"), 1),
+            (L("autoclean_12h"), 12),
+            (L("autoclean_24h"), 24),
+            (L("autoclean_3d"), 72),
+            (L("autoclean_7d"), 168),
+            (L("autoclean_never"), 0)
         ]
         for (title, h) in options {
             let item = NSMenuItem(title: title, action: #selector(changeAutoCleanHour(_:)), keyEquivalent: "")
@@ -58,21 +68,21 @@ final class MenuBarController {
             autoCleanSubmenu.addItem(item)
         }
         
-        let autoCleanItem = NSMenuItem(title: "⏱️ 自动清理设置", action: nil, keyEquivalent: "")
+        let autoCleanItem = NSMenuItem(title: L("menu_autoclean"), action: nil, keyEquivalent: "")
         autoCleanItem.submenu = autoCleanSubmenu
         menu.addItem(autoCleanItem)
         
-        let clearItem = NSMenuItem(title: "🗑️ 清空中转站全部文件", action: #selector(clearAll), keyEquivalent: "")
+        let clearItem = NSMenuItem(title: L("menu_clear"), action: #selector(clearAll), keyEquivalent: "")
         clearItem.target = self
         menu.addItem(clearItem)
         
-        let openFolderItem = NSMenuItem(title: "📂 在访达中打开中转目录", action: #selector(openFolder), keyEquivalent: "")
+        let openFolderItem = NSMenuItem(title: L("menu_open_folder"), action: #selector(openFolder), keyEquivalent: "")
         openFolderItem.target = self
         menu.addItem(openFolderItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        let quitItem = NSMenuItem(title: "❌ 退出 Mac 文件中转站", action: #selector(quitApp), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: L("menu_quit"), action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
         
@@ -83,6 +93,10 @@ final class MenuBarController {
     
     @objc private func toggleShelf() {
         shelfWindow?.toggleShelf()
+    }
+    
+    @objc private func openSettings() {
+        SettingsWindowController.shared.showSettings()
     }
     
     @objc private func changeAutoCleanHour(_ sender: NSMenuItem) {

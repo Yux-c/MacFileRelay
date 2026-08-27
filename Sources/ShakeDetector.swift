@@ -39,6 +39,9 @@ final class ShakeDetector {
     }
     
     private func handleMovement(point: NSPoint) {
+        if UserDefaults.standard.bool(forKey: "MacFileRelay_DisableShake") {
+            return
+        }
         let now = Date().timeIntervalSinceReferenceDate
         // 0.8s cooldown after triggering to prevent repeated popups
         if now - lastTriggerTime < 0.8 { return }

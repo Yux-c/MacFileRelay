@@ -231,7 +231,13 @@ final class ShelfGridView: NSView {
         emptySubtitle.alignment = .center
         emptyContainer.addSubview(emptySubtitle)
         
+        updateEmptyStateText()
         reload()
+    }
+    
+    func updateEmptyStateText() {
+        emptyTitle.stringValue = L("empty_title")
+        emptySubtitle.stringValue = L("empty_subtitle")
     }
     
     func reload() {
