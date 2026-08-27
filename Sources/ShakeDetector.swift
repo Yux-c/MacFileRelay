@@ -95,8 +95,8 @@ final class ShakeDetector {
         }
         
         let now = Date().timeIntervalSinceReferenceDate
-        // 0.8s cooldown after triggering to prevent repeated popups
-        if now - lastTriggerTime < 0.8 { return }
+        // 0.35s snappy cooldown after triggering so shake-again immediately closes!
+        if now - lastTriggerTime < 0.35 { return }
         
         let config = sensitivity
         
