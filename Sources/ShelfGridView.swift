@@ -185,8 +185,7 @@ final class ShelfGridView: NSView {
     private var itemViews: [ShelfItemCardView] = []
     private let emptyContainer = NSView()
     private let emptyIcon = NSImageView()
-    private let emptyTitle = NSTextField(labelWithString: "拖入任意文件暂存")
-    private let emptySubtitle = NSTextField(labelWithString: "支持同时存放多个文件 · 随时拖出")
+    private let emptyTitle = NSTextField(labelWithString: "")
     
     var hoveredItem: ShelvedItem?
     var selectedItem: ShelvedItem?
@@ -217,7 +216,7 @@ final class ShelfGridView: NSView {
         addSubview(emptyContainer)
         
         emptyIcon.image = NSImage(systemSymbolName: "arrow.down.doc.fill", accessibilityDescription: nil)?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 26, weight: .medium))
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 28, weight: .medium))
         emptyIcon.contentTintColor = .controlAccentColor
         emptyContainer.addSubview(emptyIcon)
         
@@ -226,18 +225,12 @@ final class ShelfGridView: NSView {
         emptyTitle.alignment = .center
         emptyContainer.addSubview(emptyTitle)
         
-        emptySubtitle.font = NSFont.systemFont(ofSize: 11, weight: .regular)
-        emptySubtitle.textColor = .secondaryLabelColor
-        emptySubtitle.alignment = .center
-        emptyContainer.addSubview(emptySubtitle)
-        
         updateEmptyStateText()
         reload()
     }
     
     func updateEmptyStateText() {
         emptyTitle.stringValue = L("empty_title")
-        emptySubtitle.stringValue = L("empty_subtitle")
     }
     
     func reload() {
@@ -315,12 +308,12 @@ final class ShelfGridView: NSView {
         let containerHeight = parentHeight - 10
         emptyContainer.frame = NSRect(x: 10, y: 5, width: containerWidth, height: containerHeight)
         
-        let totalContentHeight: CGFloat = 74
+        // Icon (32px) + Gap (10px) + Title (18px) = 60px total content height
+        let totalContentHeight: CGFloat = 60
         let startY = (containerHeight - totalContentHeight) / 2
         
-        emptySubtitle.frame = NSRect(x: 0, y: startY, width: containerWidth, height: 14)
-        emptyTitle.frame = NSRect(x: 0, y: startY + 14 + 4, width: containerWidth, height: 16)
-        emptyIcon.frame = NSRect(x: (containerWidth - 32) / 2, y: startY + 14 + 4 + 16 + 8, width: 32, height: 32)
+        emptyTitle.frame = NSRect(x: 0, y: startY, width: containerWidth, height: 18)
+        emptyIcon.frame = NSRect(x: (containerWidth - 32) / 2, y: startY + 18 + 10, width: 32, height: 32)
     }
     
     override func layout() {
