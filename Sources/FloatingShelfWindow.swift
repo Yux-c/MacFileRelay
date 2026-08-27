@@ -2,11 +2,27 @@ import Cocoa
 import QuartzCore
 import QuickLookUI
 
+final class DraggableHeaderView: NSView {
+    override var mouseDownCanMoveWindow: Bool {
+        return true
+    }
+    
+    override func mouseDown(with event: NSEvent) {
+        let location = convert(event.locationInWindow, from: nil)
+        let hit = hitTest(location)
+        if hit is NSButton || hit?.superview is NSButton {
+            super.mouseDown(with: event)
+            return
+        }
+        window?.performDrag(with: event)
+    }
+}
+
 final class FloatingShelfView: NSView {
     weak var windowController: FloatingShelfWindow?
     
     let backgroundEffect = NSVisualEffectView()
-    let headerView = NSView()
+    let headerView = DraggableHeaderView()
     let titleLabel = NSTextField(labelWithString: "")
     let countLabel = NSTextField(labelWithString: "")
     let autoCleanBadge = NSTextField(labelWithString: "")
@@ -48,7 +64,7 @@ final class FloatingShelfView: NSView {
         backgroundEffect.layer?.borderColor = NSColor.white.withAlphaComponent(0.2).cgColor
         addSubview(backgroundEffect)
         
-        // Header
+        // Header - Draggable Area
         headerView.frame = NSRect(x: 0, y: bounds.height - 38, width: bounds.width, height: 38)
         headerView.autoresizingMask = [.width, .minYMargin]
         backgroundEffect.addSubview(headerView)
@@ -302,6 +318,7 @@ final class FloatingShelfWindow: NSPanel {
         backgroundColor = .clear
         hasShadow = true
         level = .floating
+        isMovableByWindowBackground = true
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         
         shelfView.autoresizingMask = [.width, .height]
