@@ -35,6 +35,7 @@ final class LocalizationManager {
         case "shelf_title": return isZh ? "文件中转站" : "File Relay"
         case "empty_state": return isZh ? "空空如也" : "Empty"
         case "items_count": return isZh ? "%d 项 · %@" : "%d items · %@"
+        case "selected_count": return isZh ? "已选 %d 项 · %@" : "%d selected · %@"
         case "auto_clean_badge": return isZh ? "· %dh 自动清理" : "· %dh auto-clean"
         case "manual_clean_badge": return isZh ? "· 手动清理" : "· Manual clean"
         
@@ -42,14 +43,12 @@ final class LocalizationManager {
         case "btn_close": return isZh ? "关闭" : "Close"
         case "btn_settings": return isZh ? "偏好设置" : "Settings"
         case "btn_open_folder": return isZh ? "在访达中打开" : "Open in Finder"
-        case "btn_zip": return isZh ? "全部打包为 ZIP" : "Zip All"
         case "btn_clear": return isZh ? "清空全部" : "Clear All"
         case "btn_clear_hotkey": return isZh ? "清除快捷键 (不绑定)" : "Clear Shortcut (Unbind)"
         case "quicklook": return isZh ? "空格预览" : "Quick Look"
         
         // Empty State
         case "empty_title": return isZh ? "拖入任意文件暂存" : "Drop files here to relay"
-        case "empty_subtitle": return isZh ? "支持同时存放多个文件 · 随时拖出" : "Holds unlimited files · Drag out anytime"
         
         // Menu Bar
         case "menu_toggle": return isZh ? "展开/收起文件中转站 (%@)" : "Toggle File Relay (%@)"

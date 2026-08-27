@@ -27,7 +27,6 @@ final class FloatingShelfView: NSView {
     let countLabel = NSTextField(labelWithString: "")
     let autoCleanBadge = NSTextField(labelWithString: "")
     
-    let zipButton = NSButton()
     let openFolderButton = NSButton()
     let clearAllButton = NSButton()
     let settingsButton = NSButton()
@@ -144,25 +143,13 @@ final class FloatingShelfView: NSView {
         openFolderButton.action = #selector(openFolderClicked)
         headerView.addSubview(openFolderButton)
         
-        // Zip Archive Button
-        zipButton.bezelStyle = .texturedRounded
-        zipButton.isBordered = false
-        zipButton.image = NSImage(systemSymbolName: "doc.zipper", accessibilityDescription: "Zip All")?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 11, weight: .medium))
-        zipButton.contentTintColor = NSColor.secondaryLabelColor
-        zipButton.frame = NSRect(x: bounds.width - 106, y: 8, width: 22, height: 22)
-        zipButton.autoresizingMask = [.minXMargin]
-        zipButton.target = self
-        zipButton.action = #selector(zipAllClicked)
-        headerView.addSubview(zipButton)
-        
         // Clear All Button
         clearAllButton.bezelStyle = .texturedRounded
         clearAllButton.isBordered = false
         clearAllButton.image = NSImage(systemSymbolName: "trash.fill", accessibilityDescription: "Clear All")?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 11, weight: .medium))
         clearAllButton.contentTintColor = NSColor.secondaryLabelColor
-        clearAllButton.frame = NSRect(x: bounds.width - 130, y: 8, width: 22, height: 22)
+        clearAllButton.frame = NSRect(x: bounds.width - 106, y: 8, width: 22, height: 22)
         clearAllButton.autoresizingMask = [.minXMargin]
         clearAllButton.target = self
         clearAllButton.action = #selector(clearAllClicked)
@@ -180,6 +167,9 @@ final class FloatingShelfView: NSView {
         shelfGridView.onItemsUpdated = { [weak self] in
             self?.updateItemCount()
         }
+        shelfGridView.onSelectionChanged = { [weak self] selected in
+            self?.updateItemCount(selectedItems: selected)
+        }
         scrollView.documentView = shelfGridView
         backgroundEffect.addSubview(scrollView)
         
@@ -194,16 +184,19 @@ final class FloatingShelfView: NSView {
         closeButton.toolTip = L("btn_close")
         settingsButton.toolTip = L("btn_settings")
         openFolderButton.toolTip = L("btn_open_folder")
-        zipButton.toolTip = L("btn_zip")
         clearAllButton.toolTip = L("btn_clear")
         
         updateItemCount()
         shelfGridView.updateEmptyStateText()
     }
     
-    func updateItemCount() {
+    func updateItemCount(selectedItems: [ShelvedItem]? = nil) {
         let count = StorageManager.shared.items.count
-        if count > 0 {
+        
+        if let selected = selectedItems, selected.count > 1 {
+            let selectedSize = ByteCountFormatter.string(fromByteCount: selected.reduce(0) { $0 + $1.fileSize }, countStyle: .file)
+            countLabel.stringValue = String(format: L("selected_count"), selected.count, selectedSize)
+        } else if count > 0 {
             let size = StorageManager.shared.totalFormattedSize
             countLabel.stringValue = String(format: L("items_count"), count, size)
         } else {
@@ -218,7 +211,6 @@ final class FloatingShelfView: NSView {
         }
         
         clearAllButton.isHidden = count == 0
-        zipButton.isHidden = count == 0
     }
     
     @objc private func closeClicked() {
@@ -230,22 +222,6 @@ final class FloatingShelfView: NSView {
         StorageManager.shared.clearAll()
         shelfGridView.reload()
         updateItemCount()
-    }
-    
-    @objc private func zipAllClicked() {
-        let urls = StorageManager.shared.items.map { $0.url }
-        guard !urls.isEmpty else { return }
-        
-        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-        let destination = StorageManager.shared.storageDirectory
-        ZipHelper.createZip(of: urls, in: destination) { [weak self] zipURL in
-            if zipURL != nil {
-                StorageManager.shared.reloadItems()
-                self?.shelfGridView.reload()
-                self?.updateItemCount()
-                NSSound(named: "Pop")?.play()
-            }
-        }
     }
     
     @objc private func openFolderClicked() {
