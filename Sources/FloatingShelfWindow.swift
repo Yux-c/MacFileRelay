@@ -167,9 +167,6 @@ final class FloatingShelfView: NSView {
         shelfGridView.onItemsUpdated = { [weak self] in
             self?.updateItemCount()
         }
-        shelfGridView.onSelectionChanged = { [weak self] selected in
-            self?.updateItemCount(selectedItems: selected)
-        }
         scrollView.documentView = shelfGridView
         backgroundEffect.addSubview(scrollView)
         
@@ -190,13 +187,10 @@ final class FloatingShelfView: NSView {
         shelfGridView.updateEmptyStateText()
     }
     
-    func updateItemCount(selectedItems: [ShelvedItem]? = nil) {
+    func updateItemCount() {
         let count = StorageManager.shared.items.count
         
-        if let selected = selectedItems, selected.count > 1 {
-            let selectedSize = ByteCountFormatter.string(fromByteCount: selected.reduce(0) { $0 + $1.fileSize }, countStyle: .file)
-            countLabel.stringValue = String(format: L("selected_count"), selected.count, selectedSize)
-        } else if count > 0 {
+        if count > 0 {
             let size = StorageManager.shared.totalFormattedSize
             countLabel.stringValue = String(format: L("items_count"), count, size)
         } else {
@@ -306,63 +300,27 @@ final class FloatingShelfWindow: NSPanel {
             self?.toggleShelf()
         }
         
-        // Key shortcuts monitor for Floating Shelf:
-        // - Spacebar (49): QuickLook Preview
-        // - Command + A (0): Select All
-        // - Command + C (8): Copy Files to Clipboard
-        // - Delete / Backspace (51 / 117): Batch Delete Selected
-        // - ESC (53): Hide Shelf
+        // Spacebar & ESC Key monitor
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self, self.isShelfVisible else { return event }
-            let flags = event.modifierFlags.intersection([.command, .option, .shift, .control])
-            
-            if flags == .command {
-                if event.keyCode == 0 { // 'a'
-                    self.shelfView.shelfGridView.selectAllItems()
-                    return nil
-                } else if event.keyCode == 8 { // 'c'
-                    self.shelfView.shelfGridView.copySelectedItemsToClipboard()
+            if event.keyCode == 49 { // Spacebar
+                if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
+                    QuickLookCoordinator.shared.preview(url: targetURL)
                     return nil
                 }
-            }
-            
-            if flags.isEmpty {
-                if event.keyCode == 49 { // Spacebar
-                    if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
-                        QuickLookCoordinator.shared.preview(url: targetURL)
-                        return nil
-                    }
-                } else if event.keyCode == 53 { // ESC
-                    self.hideShelf()
-                    return nil
-                } else if event.keyCode == 51 || event.keyCode == 117 { // Delete / Backspace
-                    self.shelfView.shelfGridView.deleteSelectedItems()
-                    return nil
-                }
+            } else if event.keyCode == 53 { // ESC
+                self.hideShelf()
+                return nil
             }
             return event
         }
         
         NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self, self.isShelfVisible else { return }
-            let flags = event.modifierFlags.intersection([.command, .option, .shift, .control])
-            
-            if flags == .command {
-                if event.keyCode == 0 { // 'a'
+            if event.keyCode == 49 { // Spacebar
+                if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
                     DispatchQueue.main.async {
-                        self.shelfView.shelfGridView.selectAllItems()
-                    }
-                } else if event.keyCode == 8 { // 'c'
-                    DispatchQueue.main.async {
-                        self.shelfView.shelfGridView.copySelectedItemsToClipboard()
-                    }
-                }
-            } else if flags.isEmpty {
-                if event.keyCode == 49 { // Spacebar
-                    if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
-                        DispatchQueue.main.async {
-                            QuickLookCoordinator.shared.preview(url: targetURL)
-                        }
+                        QuickLookCoordinator.shared.preview(url: targetURL)
                     }
                 }
             }

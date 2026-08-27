@@ -35,7 +35,6 @@ final class LocalizationManager {
         case "shelf_title": return isZh ? "文件中转站" : "File Relay"
         case "empty_state": return isZh ? "空空如也" : "Empty"
         case "items_count": return isZh ? "%d 项 · %@" : "%d items · %@"
-        case "selected_count": return isZh ? "已选 %d 项 · %@" : "%d selected · %@"
         case "auto_clean_badge": return isZh ? "· %dh 自动清理" : "· %dh auto-clean"
         case "manual_clean_badge": return isZh ? "· 手动清理" : "· Manual clean"
         
