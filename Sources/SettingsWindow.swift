@@ -239,7 +239,7 @@ final class SettingsWindowController: NSWindowController {
         
         currentY -= 26
         
-        shakeCloseCheckbox.frame = NSRect(x: 44, y: currentY, width: 380, height: 20)
+        shakeCloseCheckbox.frame = NSRect(x: 24, y: currentY, width: 400, height: 20)
         shakeCloseCheckbox.target = self
         shakeCloseCheckbox.action = #selector(shakeCloseToggled)
         visualEffect.addSubview(shakeCloseCheckbox)
