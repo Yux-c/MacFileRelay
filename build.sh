@@ -15,7 +15,13 @@ mkdir -p /Applications/MacFileRelay.app/Contents/MacOS
 mkdir -p /Applications/MacFileRelay.app/Contents/Resources
 cp MacFileRelay /Applications/MacFileRelay.app/Contents/MacOS/
 cp Resources/Info.plist /Applications/MacFileRelay.app/Contents/
+if [ -f Resources/AppIcon.icns ]; then
+  cp Resources/AppIcon.icns /Applications/MacFileRelay.app/Contents/Resources/
+fi
 chmod +x /Applications/MacFileRelay.app/Contents/MacOS/MacFileRelay
+
+# Refresh macOS Finder icon cache for the app
+touch /Applications/MacFileRelay.app
 
 echo "✅ Build and install complete!"
 echo "🚀 Launching MacFileRelay.app..."
