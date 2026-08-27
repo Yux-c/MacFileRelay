@@ -78,10 +78,13 @@ final class LocalizationManager {
         case "settings_shake": return isZh ? "拖拽文件时摇晃光标就地弹出" : "Shake cursor to summon while dragging files"
         case "settings_shake_desc": return isZh ? "按住文件晃动鼠标即可就地展开中转站" : "Wiggle mouse while dragging to summon shelf beside cursor"
         case "settings_shake_sensitivity": return isZh ? "摇晃灵敏度：" : "Shake Sensitivity:"
-        case "shake_high": return isZh ? "⚡ 高灵敏度 (轻微晃动即出)" : "⚡ High (Gentle wiggles)"
-        case "shake_normal": return isZh ? "🎯 标准灵敏度 (默认推荐)" : "🎯 Normal (Recommended)"
-        case "shake_low": return isZh ? "🛡️ 低灵敏度 (需要较大幅度)" : "🛡️ Low (Larger movements)"
-        case "shake_very_low": return isZh ? "🧊 极低灵敏度 (大幅剧烈摇晃)" : "🧊 Very Low (Vigorous shakes)"
+        case "slider_slow": return isZh ? "迟钝" : "Slow"
+        case "slider_fast": return isZh ? "灵敏" : "Fast"
+        case "sens_1": return isZh ? "🧊 极低灵敏度 (需大幅剧烈摇晃)" : "🧊 Very Low (Vigorous shakes)"
+        case "sens_2": return isZh ? "🛡️ 偏低灵敏度 (需明显大幅晃动)" : "🛡️ Low (Larger movements)"
+        case "sens_3": return isZh ? "🎯 标准灵敏度 (默认推荐 · 适中)" : "🎯 Normal (Recommended · Default)"
+        case "sens_4": return isZh ? "⚡ 偏高灵敏度 (轻微晃动即出)" : "⚡ High (Gentle wiggles)"
+        case "sens_5": return isZh ? "🚀 极高灵敏度 (极易触发 · 极速出)" : "🚀 Ultra High (Effortless triggers)"
         
         default: return key
         }

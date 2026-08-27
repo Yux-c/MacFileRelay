@@ -120,12 +120,17 @@ final class SettingsWindowController: NSWindowController {
     // Shake Section
     private let shakeCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     private let shakeDesc = NSTextField(labelWithString: "")
+    
+    // Shake Slider Section
     private let shakeSensitivityTitle = NSTextField(labelWithString: "")
-    private let shakeSensitivityPopup = NSPopUpButton()
+    private let shakeSlider = NSSlider()
+    private let sliderSlowLabel = NSTextField(labelWithString: "")
+    private let sliderFastLabel = NSTextField(labelWithString: "")
+    private let shakeLevelLabel = NSTextField(labelWithString: "")
     
     init() {
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 390),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 410),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -237,17 +242,37 @@ final class SettingsWindowController: NSWindowController {
         shakeDesc.frame = NSRect(x: 44, y: currentY - 16, width: 380, height: 16)
         visualEffect.addSubview(shakeDesc)
         
-        currentY -= 44
+        currentY -= 46
         
-        // 5. Shake Sensitivity
+        // 5. Shake Slider
         shakeSensitivityTitle.font = NSFont.systemFont(ofSize: 12, weight: .medium)
-        shakeSensitivityTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
+        shakeSensitivityTitle.frame = NSRect(x: 24, y: currentY - 2, width: 140, height: 22)
         visualEffect.addSubview(shakeSensitivityTitle)
         
-        shakeSensitivityPopup.frame = NSRect(x: 170, y: currentY - 2, width: 250, height: 26)
-        shakeSensitivityPopup.target = self
-        shakeSensitivityPopup.action = #selector(sensitivityChanged)
-        visualEffect.addSubview(shakeSensitivityPopup)
+        sliderSlowLabel.font = NSFont.systemFont(ofSize: 10, weight: .regular)
+        sliderSlowLabel.textColor = .secondaryLabelColor
+        sliderSlowLabel.alignment = .right
+        sliderSlowLabel.frame = NSRect(x: 130, y: currentY - 4, width: 36, height: 18)
+        visualEffect.addSubview(sliderSlowLabel)
+        
+        shakeSlider.minValue = 1
+        shakeSlider.maxValue = 5
+        shakeSlider.numberOfTickMarks = 5
+        shakeSlider.allowsTickMarkValuesOnly = true
+        shakeSlider.frame = NSRect(x: 172, y: currentY - 8, width: 200, height: 26)
+        shakeSlider.target = self
+        shakeSlider.action = #selector(sliderChanged)
+        visualEffect.addSubview(shakeSlider)
+        
+        sliderFastLabel.font = NSFont.systemFont(ofSize: 10, weight: .regular)
+        sliderFastLabel.textColor = .secondaryLabelColor
+        sliderFastLabel.frame = NSRect(x: 378, y: currentY - 4, width: 36, height: 18)
+        visualEffect.addSubview(sliderFastLabel)
+        
+        shakeLevelLabel.font = NSFont.systemFont(ofSize: 11, weight: .medium)
+        shakeLevelLabel.textColor = .controlAccentColor
+        shakeLevelLabel.frame = NSRect(x: 172, y: currentY - 28, width: 240, height: 18)
+        visualEffect.addSubview(shakeLevelLabel)
         
         refreshText()
     }
@@ -291,24 +316,30 @@ final class SettingsWindowController: NSWindowController {
         shakeDesc.stringValue = L("settings_shake_desc")
         
         shakeSensitivityTitle.stringValue = L("settings_shake_sensitivity")
-        shakeSensitivityTitle.alphaValue = isShakeDisabled ? 0.4 : 1.0
-        shakeSensitivityPopup.isEnabled = !isShakeDisabled
-        shakeSensitivityPopup.alphaValue = isShakeDisabled ? 0.4 : 1.0
+        sliderSlowLabel.stringValue = L("slider_slow")
+        sliderFastLabel.stringValue = L("slider_fast")
         
-        shakeSensitivityPopup.removeAllItems()
-        let sensOptions: [(String, ShakeSensitivity)] = [
-            (L("shake_high"), .high),
-            (L("shake_normal"), .normal),
-            (L("shake_low"), .low),
-            (L("shake_very_low"), .veryLow)
-        ]
-        let currentSens = ShakeDetector.shared.sensitivity
-        for (idx, opt) in sensOptions.enumerated() {
-            shakeSensitivityPopup.addItem(withTitle: opt.0)
-            shakeSensitivityPopup.item(at: idx)?.tag = opt.1.rawValue
-            if opt.1 == currentSens {
-                shakeSensitivityPopup.selectItem(at: idx)
-            }
+        let sens = ShakeDetector.shared.sensitivity
+        shakeSlider.integerValue = sens.rawValue
+        updateSliderLevelLabel(for: sens.rawValue)
+        
+        let alpha: CGFloat = isShakeDisabled ? 0.4 : 1.0
+        shakeSensitivityTitle.alphaValue = alpha
+        shakeSlider.isEnabled = !isShakeDisabled
+        shakeSlider.alphaValue = alpha
+        sliderSlowLabel.alphaValue = alpha
+        sliderFastLabel.alphaValue = alpha
+        shakeLevelLabel.alphaValue = alpha
+    }
+    
+    private func updateSliderLevelLabel(for value: Int) {
+        switch value {
+        case 1: shakeLevelLabel.stringValue = L("sens_1")
+        case 2: shakeLevelLabel.stringValue = L("sens_2")
+        case 3: shakeLevelLabel.stringValue = L("sens_3")
+        case 4: shakeLevelLabel.stringValue = L("sens_4")
+        case 5: shakeLevelLabel.stringValue = L("sens_5")
+        default: shakeLevelLabel.stringValue = L("sens_3")
         }
     }
     
@@ -347,10 +378,12 @@ final class SettingsWindowController: NSWindowController {
         refreshText()
     }
     
-    @objc private func sensitivityChanged() {
-        if let selectedItem = shakeSensitivityPopup.selectedItem,
-           let sens = ShakeSensitivity(rawValue: selectedItem.tag) {
+    @objc private func sliderChanged() {
+        let val = shakeSlider.integerValue
+        if let sens = ShakeSensitivity(rawValue: val) {
             ShakeDetector.shared.sensitivity = sens
+            updateSliderLevelLabel(for: val)
+            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         }
     }
     

@@ -1,35 +1,39 @@
 import Cocoa
 
 enum ShakeSensitivity: Int, CaseIterable {
-    case high = 1
-    case normal = 2
-    case low = 3
-    case veryLow = 4
+    case veryLow = 1
+    case low = 2
+    case normal = 3  // Default middle!
+    case high = 4
+    case veryHigh = 5
     
     var threshold: CGFloat {
         switch self {
-        case .high: return 10.0
-        case .normal: return 16.0
-        case .low: return 26.0
         case .veryLow: return 36.0
+        case .low: return 24.0
+        case .normal: return 16.0  // Default
+        case .high: return 11.0
+        case .veryHigh: return 7.0
         }
     }
     
     var requiredReversals: Int {
         switch self {
-        case .high: return 2
-        case .normal: return 3
-        case .low: return 3
         case .veryLow: return 4
+        case .low: return 3
+        case .normal: return 3
+        case .high: return 2
+        case .veryHigh: return 2
         }
     }
     
     var timeWindow: TimeInterval {
         switch self {
-        case .high: return 0.38
-        case .normal: return 0.42
-        case .low: return 0.50
         case .veryLow: return 0.55
+        case .low: return 0.50
+        case .normal: return 0.45
+        case .high: return 0.40
+        case .veryHigh: return 0.35
         }
     }
 }
@@ -43,7 +47,8 @@ final class ShakeDetector {
     var sensitivity: ShakeSensitivity {
         get {
             let val = UserDefaults.standard.integer(forKey: sensitivityKey)
-            return ShakeSensitivity(rawValue: val) ?? .normal
+            // Default 3 (Normal / Middle)
+            return (val >= 1 && val <= 5) ? (ShakeSensitivity(rawValue: val) ?? .normal) : .normal
         }
         set {
             UserDefaults.standard.set(newValue.rawValue, forKey: sensitivityKey)
