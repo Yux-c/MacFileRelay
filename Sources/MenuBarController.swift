@@ -33,7 +33,7 @@ final class MenuBarController {
     private func showMenu() {
         let menu = NSMenu()
         
-        let toggleItem = NSMenuItem(title: "📦 展开/收起暂存托盘 (⌥D)", action: #selector(toggleShelf), keyEquivalent: "d")
+        let toggleItem = NSMenuItem(title: "📦 展开/收起文件中转站 (⌥D)", action: #selector(toggleShelf), keyEquivalent: "d")
         toggleItem.keyEquivalentModifierMask = .option
         toggleItem.target = self
         menu.addItem(toggleItem)
@@ -62,17 +62,17 @@ final class MenuBarController {
         autoCleanItem.submenu = autoCleanSubmenu
         menu.addItem(autoCleanItem)
         
-        let clearItem = NSMenuItem(title: "🗑️ 清空所有暂存文件", action: #selector(clearAll), keyEquivalent: "")
+        let clearItem = NSMenuItem(title: "🗑️ 清空中转站全部文件", action: #selector(clearAll), keyEquivalent: "")
         clearItem.target = self
         menu.addItem(clearItem)
         
-        let openFolderItem = NSMenuItem(title: "📂 在访达中打开暂存目录", action: #selector(openFolder), keyEquivalent: "")
+        let openFolderItem = NSMenuItem(title: "📂 在访达中打开中转目录", action: #selector(openFolder), keyEquivalent: "")
         openFolderItem.target = self
         menu.addItem(openFolderItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        let quitItem = NSMenuItem(title: "❌ 退出 ShakeDrop", action: #selector(quitApp), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: "❌ 退出 Mac 文件中转站", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
         

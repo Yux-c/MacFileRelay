@@ -10,7 +10,7 @@ final class ZipHelper {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd_HHmmss"
         let timestamp = dateFormatter.string(from: Date())
-        let zipName = "ShakeDrop_Archive_\(timestamp).zip"
+        let zipName = "MacFileRelay_Archive_\(timestamp).zip"
         let zipURL = destinationDirectory.appendingPathComponent(zipName)
         
         let process = Process()

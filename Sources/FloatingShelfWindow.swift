@@ -7,7 +7,7 @@ final class FloatingShelfView: NSView {
     
     let backgroundEffect = NSVisualEffectView()
     let headerView = NSView()
-    let titleLabel = NSTextField(labelWithString: "📦 暂存托盘")
+    let titleLabel = NSTextField(labelWithString: "📦 文件中转站")
     let countLabel = NSTextField(labelWithString: "")
     let autoCleanBadge = NSTextField(labelWithString: "")
     

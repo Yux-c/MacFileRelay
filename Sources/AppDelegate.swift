@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Initial auto-clean
         AutoCleanManager.shared.performCleanup()
         
-        print("ShakeDrop (Shake to Drop) initialized successfully.")
+        print("MacFileRelay (Mac 文件中转站) initialized successfully.")
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {

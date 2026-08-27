@@ -4,14 +4,16 @@
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>zh_CN</string>
+    <key>CFBundleDisplayName</key>
+    <string>Mac 文件中转站</string>
     <key>CFBundleExecutable</key>
-    <string>ShakeDrop</string>
+    <string>MacFileRelay</string>
     <key>CFBundleIdentifier</key>
-    <string>com.shakedrop.app</string>
+    <string>com.macfilerelay.app</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>ShakeDrop</string>
+    <string>MacFileRelay</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -25,6 +27,6 @@
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2026 ShakeDrop Authors. All rights reserved.</string>
+    <string>Copyright © 2026 MacFileRelay Authors. All rights reserved.</string>
 </dict>
 </plist>

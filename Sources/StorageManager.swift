@@ -32,19 +32,21 @@ final class StorageManager {
     
     private init() {
         let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        storageDirectory = appSupport.appendingPathComponent("ShakeDrop/ShelvedFiles", isDirectory: true)
+        storageDirectory = appSupport.appendingPathComponent("MacFileRelay/ShelvedFiles", isDirectory: true)
         
-        // Migrate old NotchDrop files if existing
-        let oldStorage = appSupport.appendingPathComponent("NotchDrop/ShelvedFiles", isDirectory: true)
-        if fileManager.fileExists(atPath: oldStorage.path) {
-            try? fileManager.createDirectory(at: storageDirectory, withIntermediateDirectories: true)
-            if let oldFiles = try? fileManager.contentsOfDirectory(at: oldStorage, includingPropertiesForKeys: nil) {
-                for file in oldFiles {
-                    let dest = storageDirectory.appendingPathComponent(file.lastPathComponent)
-                    try? fileManager.moveItem(at: file, to: dest)
+        // Migrate old storage if existing
+        for oldName in ["ShakeDrop/ShelvedFiles", "NotchDrop/ShelvedFiles"] {
+            let oldStorage = appSupport.appendingPathComponent(oldName, isDirectory: true)
+            if fileManager.fileExists(atPath: oldStorage.path) {
+                try? fileManager.createDirectory(at: storageDirectory, withIntermediateDirectories: true)
+                if let oldFiles = try? fileManager.contentsOfDirectory(at: oldStorage, includingPropertiesForKeys: nil) {
+                    for file in oldFiles {
+                        let dest = storageDirectory.appendingPathComponent(file.lastPathComponent)
+                        try? fileManager.moveItem(at: file, to: dest)
+                    }
                 }
+                try? fileManager.removeItem(at: oldStorage)
             }
-            try? fileManager.removeItem(at: oldStorage)
         }
         
         try? fileManager.createDirectory(at: storageDirectory, withIntermediateDirectories: true)

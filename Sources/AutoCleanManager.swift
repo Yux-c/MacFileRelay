@@ -3,17 +3,17 @@ import Cocoa
 final class AutoCleanManager {
     static let shared = AutoCleanManager()
     
-    private let userDefaultsKey = "ShakeDrop_AutoCleanHours"
+    private let userDefaultsKey = "MacFileRelay_AutoCleanHours"
     private var timer: Timer?
     
     var retentionHours: Int {
         get {
             let val = UserDefaults.standard.integer(forKey: userDefaultsKey)
-            return val == 0 && !UserDefaults.standard.bool(forKey: "ShakeDrop_AutoCleanConfigured") ? 24 : val
+            return val == 0 && !UserDefaults.standard.bool(forKey: "MacFileRelay_AutoCleanConfigured") ? 24 : val
         }
         set {
             UserDefaults.standard.set(newValue, forKey: userDefaultsKey)
-            UserDefaults.standard.set(true, forKey: "ShakeDrop_AutoCleanConfigured")
+            UserDefaults.standard.set(true, forKey: "MacFileRelay_AutoCleanConfigured")
             performCleanup()
         }
     }

@@ -1,57 +1,77 @@
-# 📦 ShakeDrop (Shake-to-Drop Tray for macOS)
+# 📦 Mac 文件中转站 (MacFileRelay)
 
-> 纯原生 Swift 编写的超轻量 macOS 暂存托盘应用。随时摇晃鼠标就地暂存，告别杂乱，支持定时自动清理与极速拖出。
-
----
-
-## ✨ 核心特性
-
-- **🪅 摇晃鼠标，就地弹出**：
-  在屏幕任何位置拖拽文件时，轻轻左右晃动两下鼠标，半透明毛玻璃托盘直接就地在光标右侧展开，原地存入，零多余移动。
-- **🛡️ 绝对 0 误触**：
-  屏幕边缘与顶部无常驻热区，彻底避免触发 macOS 调度中心（Mission Control）或误触窗口标题栏和标签页。
-- **📑 无限多文件批量暂存**：
-  支持一次性拖入或分批追加任意数量的文件，横向流式排布，支持触摸板/滚轮顺畅滑动浏览。
-- **⏱️ 智能定时自动清理**：
-  文件存入时自动开启倒计时（支持 1h / 12h / 24h / 3天 / 7天 / 仅手动），到期后**自动安全移入系统废纸篓**，绝不暴力删除。
-- **📤 随时拖出到微信/邮件/访达**：
-  按住卡片直接拖出到任何聊天软件、邮件或文件夹中完成发送或移动。
-- **👀 空格键快速预览 (QuickLook)**：
-  原生集成 macOS QuickLook，选中文件按 Space 键或点击卡片眼睛图标即可秒级预览图片、音乐、视频与代码。
-- **🧰 一键 ZIP 打包**：
-  点击右上角拉链图标，一秒将托盘内所有暂存文件压缩打包为 `.zip`。
-- **⚡ 极致轻量与省电**：
-  纯原生 Swift 6 + AppKit 开发，无任何 Electron 或第三方框架依赖。待命状态 **0.0% CPU**，内存仅约十几 MB。
+<p align="center">
+  <b>极简 · 原生 · 无感 · 0 误触的 macOS 摇晃拖拽文件中转站</b><br>
+  <i>Ultra-lightweight, native macOS shake-to-drop file shelf & relay station.</i>
+</p>
 
 ---
 
-## ⌨️ 快捷键与操作
+## 🇨🇳 中文介绍 (Chinese)
 
-| 动作 | 快捷键 / 触发方式 | 说明 |
-| :--- | :--- | :--- |
-| **就地唤出 / 暂存** | 拖拽文件时**摇晃鼠标** | 在当前鼠标光标旁就地展开托盘 |
-| **快捷打开 / 隐藏** | **`⌥ + D`** (Option + D) | 随时在鼠标位置召唤或收起托盘 |
-| **快速预览文件** | **`Space`** (空格键) 或点击 **`👁️`** | 调出 macOS 原生 QuickLook 预览 |
-| **菜单栏常驻** | 点击顶部菜单栏 **`📥`** 图标 | 快速查看、清空或修改自动清理周期 |
+**Mac 文件中转站 (MacFileRelay)** 是一款使用苹果原生 **Swift 6 + AppKit** 构建的极轻量文件中转与暂存小工具。灵感源自 Dropover 与 Yoink，但剔除了所有冗余与侵入式设计。
+
+### 🌟 核心亮点
+
+1. **🪅 摇晃鼠标，就地中转**：
+   - 拖拽任意文件时，在屏幕任何位置**轻轻左右晃动两下光标**，毛玻璃中转站立刻在鼠标旁就地展开！
+   - 原地暂存、原地释放，无需拖到屏幕边缘或顶部。
+2. **🛡️ 绝对 0 误触**：
+   - 屏幕顶部与四周无任何常驻热区，**100% 避开系统调度中心（Mission Control）**与窗口标签栏冲突。
+3. **📑 无限多文件批量暂存**：
+   - 支持一次性框选或多次分批拖入任意数量的文件，横向流式列表，支持触摸板/滚轮自由滑动浏览。
+4. **⏱️ 智能定时自动清理**：
+   - 文件存入时自动开启倒计时（支持 1h / 12h / 24h / 3天 / 7天 / 仅手动），过期后**安全移入系统废纸篓**，绝不残留文件垃圾。
+5. **📤 极速拖出到微信/邮件/访达**：
+   - 按住卡片直接拖到聊天窗口、邮件或任意文件夹即可发送。
+6. **👀 空格秒级预览 (QuickLook)**：
+   - 悬停卡片按 `Space` 空格键或点击 `👁️` 眼睛图标，立即调出 macOS 原生 QuickLook 预览。
+7. **🧰 一键 ZIP 打包**：
+   - 点击右上角拉链图标，一秒将中转站内所有文件打包为 `.zip`。
+8. **⚡ 极致轻量与省电**：
+   - 零网页套壳，纯原生编译，待命时 **0.0% CPU**，内存仅十几 MB。
+
+### ⌨️ 快捷操作
+
+| 动作 | 方式 |
+| :--- | :--- |
+| **就地唤出中转站** | 拖拽文件时**摇晃鼠标** |
+| **快捷打开 / 隐藏** | **`⌥ + D`** (Option + D) |
+| **空格快速预览** | **`Space`** (空格键) 或点击 **`👁️`** |
+| **菜单栏管理** | 点击顶部菜单栏 **`📥`** 小图标 |
 
 ---
 
-## 🛠️ 编译与安装
+## 🇺🇸 English (Overview)
 
-本应用无需 Xcode 庞大工程，直接使用 macOS 自带的 `swiftc` 编译器即可极速编译：
+**MacFileRelay** is an ultra-fast, native macOS utility designed to make moving and organizing files frictionless. 
+
+### 🌟 Key Features
+
+- **Shake to Summon**: Simply shake your cursor while dragging files, and the relay shelf appears right next to your pointer.
+- **Zero Mis-triggers**: No annoying notch or screen edge hotspots. Won't accidentally trigger Mission Control.
+- **Multi-File Batch Shelf**: Drop multiple files at once or append over time with horizontal scrolling.
+- **Auto-Cleanup Engine**: Automatically moves stale files to the macOS Trash after your chosen retention period (1h, 12h, 24h, 3d, 7d).
+- **Native QuickLook**: Spacebar preview for images, audio, video, PDFs, and code.
+- **Zip-All in One Click**: Archive all staged files into a single `.zip` file instantly.
+- **Native & Featherlight**: Built in pure Swift 6 + AppKit. 0.0% idle CPU and minimal RAM.
+
+---
+
+## 🛠️ 编译与安装 (Build & Install)
 
 ```bash
-# 1. 克隆代码仓库
-git clone https://github.com/zyx2950129051-commits/ShakeDrop.git
-cd ShakeDrop
+# 1. Clone repository
+git clone https://github.com/zyx2950129051-commits/MacFileRelay.git
+cd MacFileRelay
 
-# 2. 一键编译并安装到 /Applications
+# 2. One-click build and install
 chmod +x build.sh
 ./build.sh
 ```
 
 ---
 
-## 📄 开源协议
+## 📄 开源协议 (License)
 
-本项目采用 [MIT License](LICENSE) 开源协议。
+[MIT License](LICENSE) © 2026 MacFileRelay Authors.
