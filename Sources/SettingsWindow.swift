@@ -130,7 +130,7 @@ final class SettingsWindowController: NSWindowController {
     
     init() {
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 430),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 440),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -162,13 +162,13 @@ final class SettingsWindowController: NSWindowController {
         visualEffect.state = .active
         contentView.addSubview(visualEffect)
         
-        // Window Title
+        // Window Title - Shifted down with comfortable margin below traffic light buttons
         titleLabel.font = NSFont.systemFont(ofSize: 15, weight: .bold)
         titleLabel.textColor = .labelColor
-        titleLabel.frame = NSRect(x: 24, y: contentView.bounds.height - 46, width: 400, height: 24)
+        titleLabel.frame = NSRect(x: 24, y: contentView.bounds.height - 66, width: 400, height: 24)
         visualEffect.addSubview(titleLabel)
         
-        var currentY = contentView.bounds.height - 86
+        var currentY = contentView.bounds.height - 106
         
         // 1. Language Section
         langTitle.font = NSFont.systemFont(ofSize: 12, weight: .medium)
@@ -273,7 +273,7 @@ final class SettingsWindowController: NSWindowController {
         
         shakeLevelLabel.font = NSFont.systemFont(ofSize: 11, weight: .medium)
         shakeLevelLabel.textColor = .controlAccentColor
-        shakeLevelLabel.frame = NSRect(x: 172, y: currentY - 28, width: 240, height: 18)
+        shakeLevelLabel.frame = NSRect(x: 172, y: currentY - 28, width: 250, height: 18)
         visualEffect.addSubview(shakeLevelLabel)
         
         refreshText()
@@ -292,7 +292,7 @@ final class SettingsWindowController: NSWindowController {
         hotkeyHint.stringValue = L("settings_hotkey_hint")
         hotkeyRecorder.updateTitle()
         
-        autoCleanTitle.stringValue = L("menu_autoclean") + "："
+        autoCleanTitle.stringValue = L("settings_autoclean")
         
         autoCleanPopup.removeAllItems()
         let options: [(String, Int)] = [

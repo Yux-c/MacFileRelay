@@ -75,6 +75,7 @@ final class LocalizationManager {
         case "settings_hotkey": return isZh ? "全局呼出快捷键：" : "Global Shortcut:"
         case "settings_hotkey_hint": return isZh ? "点击录制新按键，点 ✖️ 可不绑定快捷键" : "Click to record, or click ✖️ to unbind shortcut"
         case "hotkey_none": return isZh ? "无" : "None"
+        case "settings_autoclean": return isZh ? "自动清理设置：" : "Auto-Clean Retention:"
         
         // Shake Settings
         case "settings_shake": return isZh ? "启用光标摇晃手势 (拖拽摇晃即出)" : "Enable shake cursor gesture to summon"
@@ -82,11 +83,11 @@ final class LocalizationManager {
         case "settings_shake_sensitivity": return isZh ? "摇晃灵敏度：" : "Shake Sensitivity:"
         case "slider_slow": return isZh ? "迟钝" : "Slow"
         case "slider_fast": return isZh ? "灵敏" : "Fast"
-        case "sens_1": return isZh ? "🧊 极低灵敏度 (需大幅剧烈摇晃)" : "🧊 Very Low (Vigorous shakes)"
-        case "sens_2": return isZh ? "🛡️ 偏低灵敏度 (需明显大幅晃动)" : "🛡️ Low (Larger movements)"
-        case "sens_3": return isZh ? "🎯 标准灵敏度 (默认推荐 · 适中)" : "🎯 Normal (Recommended · Default)"
-        case "sens_4": return isZh ? "⚡ 偏高灵敏度 (轻微晃动即出)" : "⚡ High (Gentle wiggles)"
-        case "sens_5": return isZh ? "🚀 极高灵敏度 (极易触发 · 极速出)" : "🚀 Ultra High (Effortless triggers)"
+        case "sens_1": return isZh ? "极低灵敏度 (需大幅剧烈摇晃)" : "Very Low (Vigorous shakes)"
+        case "sens_2": return isZh ? "偏低灵敏度 (需明显大幅晃动)" : "Low (Larger movements)"
+        case "sens_3": return isZh ? "标准灵敏度 (默认推荐 · 适中)" : "Normal (Recommended · Default)"
+        case "sens_4": return isZh ? "偏高灵敏度 (轻微晃动即出)" : "High (Gentle wiggles)"
+        case "sens_5": return isZh ? "极高灵敏度 (极易触发 · 极速出)" : "Ultra High (Effortless triggers)"
         
         default: return key
         }
