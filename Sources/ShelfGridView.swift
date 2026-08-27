@@ -7,6 +7,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
     var onDelete: (() -> Void)?
     var onSelect: (() -> Void)?
     var onFileDropped: (([URL]) -> Void)?
+    var onHoverStateChanged: ((Bool) -> Void)?
     
     private let iconImageView = NSImageView()
     private let titleLabel = NSTextField(labelWithString: "")
@@ -19,6 +20,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
             needsDisplay = true
             deleteButton.isHidden = !isHovered
             quickLookButton.isHidden = !isHovered
+            onHoverStateChanged?(isHovered)
         }
     }
     
@@ -69,10 +71,10 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
         quickLookButton.bezelStyle = .circular
         quickLookButton.isBordered = false
         quickLookButton.wantsLayer = true
-        quickLookButton.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.45).cgColor
+        quickLookButton.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
         quickLookButton.layer?.cornerRadius = 9
-        quickLookButton.image = NSImage(systemSymbolName: "eye", accessibilityDescription: "QuickLook")?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 8, weight: .semibold))
+        quickLookButton.image = NSImage(systemSymbolName: "eye.fill", accessibilityDescription: "QuickLook")?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 9, weight: .semibold))
         quickLookButton.contentTintColor = .white
         quickLookButton.frame = NSRect(x: 6, y: 86, width: 18, height: 18)
         quickLookButton.target = self
@@ -84,7 +86,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
         deleteButton.bezelStyle = .circular
         deleteButton.isBordered = false
         deleteButton.wantsLayer = true
-        deleteButton.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.45).cgColor
+        deleteButton.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
         deleteButton.layer?.cornerRadius = 9
         deleteButton.image = NSImage(systemSymbolName: "xmark", accessibilityDescription: "Delete")?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 8, weight: .bold))
@@ -118,6 +120,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
     }
     
     @objc private func quickLookClicked() {
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         QuickLookCoordinator.shared.preview(url: item.url)
     }
     
@@ -184,6 +187,13 @@ final class ShelfGridView: NSView {
     private let emptyIcon = NSImageView()
     private let emptyTitle = NSTextField(labelWithString: "拖入任意文件暂存")
     private let emptySubtitle = NSTextField(labelWithString: "支持同时存放多个文件 · 随时拖出")
+    
+    var hoveredItem: ShelvedItem?
+    var selectedItem: ShelvedItem?
+    
+    var currentFocusedItemURL: URL? {
+        hoveredItem?.url ?? selectedItem?.url ?? StorageManager.shared.items.first?.url
+    }
     
     var onItemsUpdated: (() -> Void)?
     
@@ -253,6 +263,16 @@ final class ShelfGridView: NSView {
                 self?.reload()
                 self?.onItemsUpdated?()
             }
+            card.onSelect = { [weak self] in
+                self?.selectedItem = item
+            }
+            card.onHoverStateChanged = { [weak self] isHovered in
+                if isHovered {
+                    self?.hoveredItem = item
+                } else if self?.hoveredItem == item {
+                    self?.hoveredItem = nil
+                }
+            }
             card.onFileDropped = { [weak self] urls in
                 self?.handleDrop(urls: urls)
             }
@@ -289,8 +309,6 @@ final class ShelfGridView: NSView {
         let containerHeight = parentHeight - 10
         emptyContainer.frame = NSRect(x: 10, y: 5, width: containerWidth, height: containerHeight)
         
-        // Exact pixel-perfect vertical & horizontal centering:
-        // Icon (32) + Gap (8) + Title (16) + Gap (4) + Subtitle (14) = 74px total height
         let totalContentHeight: CGFloat = 74
         let startY = (containerHeight - totalContentHeight) / 2
         

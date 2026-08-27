@@ -1,5 +1,6 @@
 import Cocoa
 import QuartzCore
+import QuickLookUI
 
 final class FloatingShelfView: NSView {
     weak var windowController: FloatingShelfWindow?
@@ -313,6 +314,32 @@ final class FloatingShelfWindow: NSPanel {
                 }
             }
         }
+        
+        // Spacebar & ESC Key monitor
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self, self.isShelfVisible else { return event }
+            if event.keyCode == 49 { // Spacebar
+                if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
+                    QuickLookCoordinator.shared.preview(url: targetURL)
+                    return nil
+                }
+            } else if event.keyCode == 53 { // ESC
+                self.hideShelf()
+                return nil
+            }
+            return event
+        }
+        
+        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self, self.isShelfVisible else { return }
+            if event.keyCode == 49 { // Spacebar
+                if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
+                    DispatchQueue.main.async {
+                        QuickLookCoordinator.shared.preview(url: targetURL)
+                    }
+                }
+            }
+        }
     }
     
     func showNear(point: NSPoint) {
@@ -363,6 +390,10 @@ final class FloatingShelfWindow: NSPanel {
         cancelRetractTimer()
         guard isShelfVisible else { return }
         
+        if QLPreviewPanel.shared()?.isVisible == true {
+            QLPreviewPanel.shared()?.orderOut(nil)
+        }
+        
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.2
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
@@ -388,7 +419,11 @@ final class FloatingShelfWindow: NSPanel {
     
     func scheduleRetract(delay: TimeInterval = 0.8) {
         cancelRetractTimer()
+        if QLPreviewPanel.shared()?.isVisible == true {
+            return
+        }
         retractTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+            if QLPreviewPanel.shared()?.isVisible == true { return }
             self?.hideShelf()
         }
     }
