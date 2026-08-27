@@ -32,7 +32,7 @@ final class LocalizationManager {
         let isZh = currentLanguage == .chinese
         switch key {
         // Shelf Header
-        case "shelf_title": return isZh ? "📦 文件中转站" : "📦 File Relay"
+        case "shelf_title": return isZh ? "文件中转站" : "File Relay"
         case "empty_state": return isZh ? "空空如也" : "Empty"
         case "items_count": return isZh ? "%d 项 · %@" : "%d items · %@"
         case "auto_clean_badge": return isZh ? "· %dh 自动清理" : "· %dh auto-clean"
@@ -52,13 +52,13 @@ final class LocalizationManager {
         case "empty_subtitle": return isZh ? "支持同时存放多个文件 · 随时拖出" : "Holds unlimited files · Drag out anytime"
         
         // Menu Bar
-        case "menu_toggle": return isZh ? "📦 展开/收起文件中转站 (%@)" : "📦 Toggle File Relay (%@)"
-        case "menu_toggle_no_key": return isZh ? "📦 展开/收起文件中转站" : "📦 Toggle File Relay"
-        case "menu_settings": return isZh ? "⚙️ 偏好设置..." : "⚙️ Preferences..."
-        case "menu_autoclean": return isZh ? "⏱️ 自动清理设置" : "⏱️ Auto-Clean Retention"
-        case "menu_clear": return isZh ? "🗑️ 清空中转站全部文件" : "🗑️ Clear All Files"
-        case "menu_open_folder": return isZh ? "📂 在访达中打开中转目录" : "📂 Open Storage in Finder"
-        case "menu_quit": return isZh ? "❌ 退出 Mac 文件中转站" : "❌ Quit MacFileRelay"
+        case "menu_toggle": return isZh ? "展开/收起文件中转站 (%@)" : "Toggle File Relay (%@)"
+        case "menu_toggle_no_key": return isZh ? "展开/收起文件中转站" : "Toggle File Relay"
+        case "menu_settings": return isZh ? "偏好设置..." : "Preferences..."
+        case "menu_autoclean": return isZh ? "自动清理设置" : "Auto-Clean Retention"
+        case "menu_clear": return isZh ? "清空中转站全部文件" : "Clear All Files"
+        case "menu_open_folder": return isZh ? "在访达中打开中转目录" : "Open Storage in Finder"
+        case "menu_quit": return isZh ? "退出 Mac 文件中转站" : "Quit MacFileRelay"
         
         // Auto-Clean Options
         case "autoclean_1h": return isZh ? "1 小时后自动清理" : "Auto-clean after 1 hour"
