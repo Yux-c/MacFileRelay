@@ -33,7 +33,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
     
     init(item: ShelvedItem) {
         self.item = item
-        super.init(frame: NSRect(x: 0, y: 0, width: 96, height: 112))
+        super.init(frame: NSRect(x: 0, y: 0, width: 96, height: 116))
         setupUI()
         loadThumbnail()
         registerForDraggedTypes([.fileURL, .URL, .png, .tiff])
@@ -46,7 +46,6 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
     private func setupUI() {
         wantsLayer = true
         layer?.cornerRadius = 12
-        layer?.masksToBounds = true
         
         // Icon / Thumbnail
         iconImageView.image = item.icon
@@ -63,7 +62,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
         titleLabel.textColor = .labelColor
         titleLabel.alignment = .center
         titleLabel.lineBreakMode = .byTruncatingMiddle
-        titleLabel.frame = NSRect(x: 6, y: 24, width: 84, height: 16)
+        titleLabel.frame = NSRect(x: 4, y: 24, width: 88, height: 16)
         addSubview(titleLabel)
         
         // Size
@@ -71,7 +70,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
         sizeLabel.font = NSFont.systemFont(ofSize: 9, weight: .regular)
         sizeLabel.textColor = .secondaryLabelColor
         sizeLabel.alignment = .center
-        sizeLabel.frame = NSRect(x: 6, y: 8, width: 84, height: 14)
+        sizeLabel.frame = NSRect(x: 4, y: 8, width: 88, height: 14)
         addSubview(sizeLabel)
         
         // QuickLook preview button
@@ -83,7 +82,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
         quickLookButton.image = NSImage(systemSymbolName: "eye.fill", accessibilityDescription: "QuickLook")?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 9, weight: .semibold))
         quickLookButton.contentTintColor = .white
-        quickLookButton.frame = NSRect(x: 6, y: 86, width: 18, height: 18)
+        quickLookButton.frame = NSRect(x: 6, y: 90, width: 18, height: 18)
         quickLookButton.target = self
         quickLookButton.action = #selector(quickLookClicked)
         quickLookButton.isHidden = true
@@ -98,7 +97,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
         deleteButton.image = NSImage(systemSymbolName: "xmark", accessibilityDescription: "Delete")?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 8, weight: .bold))
         deleteButton.contentTintColor = .white
-        deleteButton.frame = NSRect(x: 72, y: 86, width: 18, height: 18)
+        deleteButton.frame = NSRect(x: 72, y: 90, width: 18, height: 18)
         deleteButton.target = self
         deleteButton.action = #selector(deleteClicked)
         deleteButton.isHidden = true
@@ -143,7 +142,7 @@ final class ShelfItemCardView: NSView, NSDraggingSource {
         super.draw(dirtyRect)
         
         if isSelected {
-            // Selected highlight
+            // Selected highlight - 2px inset so stroke is fully visible with complete rounded corners
             NSColor.controlAccentColor.withAlphaComponent(0.22).setFill()
             let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 2, dy: 2), xRadius: 10, yRadius: 10)
             path.fill()
@@ -266,21 +265,23 @@ final class ShelfGridView: NSView {
         
         emptyContainer.isHidden = !isEmpty
         
+        let parentHeight = superview?.bounds.height ?? 136
+        
         if isEmpty {
             let containerW = superview?.bounds.width ?? 440
-            frame.size.width = max(containerW, 440)
+            frame = NSRect(x: 0, y: 0, width: max(containerW, 440), height: parentHeight)
             layoutEmptyState()
             return
         }
         
         let itemWidth: CGFloat = 96
-        let itemHeight: CGFloat = 112
+        let itemHeight: CGFloat = 116
         let spacing: CGFloat = 8
         var currentX: CGFloat = 12
         
         for item in items {
             let card = ShelfItemCardView(item: item)
-            card.frame = NSRect(x: currentX, y: 4, width: itemWidth, height: itemHeight)
+            card.frame = NSRect(x: currentX, y: 8, width: itemWidth, height: itemHeight)
             card.isSelected = selectedItemIDs.contains(item.id)
             
             card.onDelete = { [weak self] in
@@ -326,7 +327,7 @@ final class ShelfGridView: NSView {
         
         let minWidth = superview?.bounds.width ?? 440
         let totalWidth = max(currentX + 12, minWidth)
-        frame.size.width = totalWidth
+        frame = NSRect(x: 0, y: 0, width: totalWidth, height: parentHeight)
     }
     
     private func handleCardClicked(_ card: ShelfItemCardView, flags: NSEvent.ModifierFlags) {

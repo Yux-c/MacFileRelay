@@ -155,8 +155,8 @@ final class FloatingShelfView: NSView {
         clearAllButton.action = #selector(clearAllClicked)
         headerView.addSubview(clearAllButton)
         
-        // ScrollView
-        scrollView.frame = NSRect(x: 6, y: 6, width: bounds.width - 12, height: bounds.height - 48)
+        // ScrollView - Extended height with ample top/bottom margin
+        scrollView.frame = NSRect(x: 6, y: 6, width: bounds.width - 12, height: bounds.height - 46)
         scrollView.autoresizingMask = [.width, .height]
         scrollView.drawsBackground = false
         scrollView.hasHorizontalScroller = true
@@ -279,7 +279,7 @@ final class FloatingShelfWindow: NSPanel {
     
     init() {
         let width: CGFloat = 460
-        let height: CGFloat = 175
+        let height: CGFloat = 185
         
         shelfView = FloatingShelfView(frame: NSRect(x: 0, y: 0, width: width, height: height))
         
