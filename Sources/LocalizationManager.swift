@@ -75,8 +75,10 @@ final class LocalizationManager {
         case "settings_hotkey": return isZh ? "全局呼出快捷键：" : "Global Shortcut:"
         case "settings_hotkey_hint": return isZh ? "点击录制新按键，点 ✖️ 可不绑定快捷键" : "Click to record, or click ✖️ to unbind shortcut"
         case "hotkey_none": return isZh ? "无" : "None"
-        case "settings_shake": return isZh ? "拖拽文件时摇晃光标就地弹出" : "Shake cursor to summon while dragging files"
-        case "settings_shake_desc": return isZh ? "按住文件晃动鼠标即可就地展开中转站" : "Wiggle mouse while dragging to summon shelf beside cursor"
+        
+        // Shake Settings
+        case "settings_shake": return isZh ? "启用光标摇晃手势 (拖拽摇晃即出)" : "Enable shake cursor gesture to summon"
+        case "settings_shake_close": return isZh ? "展开状态下再次摇晃立即关闭" : "Shake again to close immediately"
         case "settings_shake_sensitivity": return isZh ? "摇晃灵敏度：" : "Shake Sensitivity:"
         case "slider_slow": return isZh ? "迟钝" : "Slow"
         case "slider_fast": return isZh ? "灵敏" : "Fast"

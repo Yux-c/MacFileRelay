@@ -119,7 +119,7 @@ final class SettingsWindowController: NSWindowController {
     
     // Shake Section
     private let shakeCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
-    private let shakeDesc = NSTextField(labelWithString: "")
+    private let shakeCloseCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     
     // Shake Slider Section
     private let shakeSensitivityTitle = NSTextField(labelWithString: "")
@@ -130,7 +130,7 @@ final class SettingsWindowController: NSWindowController {
     
     init() {
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 410),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 430),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -237,10 +237,12 @@ final class SettingsWindowController: NSWindowController {
         shakeCheckbox.action = #selector(shakeToggled)
         visualEffect.addSubview(shakeCheckbox)
         
-        shakeDesc.font = NSFont.systemFont(ofSize: 10, weight: .regular)
-        shakeDesc.textColor = .secondaryLabelColor
-        shakeDesc.frame = NSRect(x: 44, y: currentY - 16, width: 380, height: 16)
-        visualEffect.addSubview(shakeDesc)
+        currentY -= 26
+        
+        shakeCloseCheckbox.frame = NSRect(x: 44, y: currentY, width: 380, height: 20)
+        shakeCloseCheckbox.target = self
+        shakeCloseCheckbox.action = #selector(shakeCloseToggled)
+        visualEffect.addSubview(shakeCloseCheckbox)
         
         currentY -= 46
         
@@ -310,10 +312,15 @@ final class SettingsWindowController: NSWindowController {
             }
         }
         
+        let isShakeEnabled = ShakeDetector.shared.isShakeEnabled
         shakeCheckbox.title = L("settings_shake")
-        let isShakeDisabled = UserDefaults.standard.bool(forKey: "MacFileRelay_DisableShake")
-        shakeCheckbox.state = isShakeDisabled ? .off : .on
-        shakeDesc.stringValue = L("settings_shake_desc")
+        shakeCheckbox.state = isShakeEnabled ? .on : .off
+        
+        let isShakeCloseEnabled = ShakeDetector.shared.isShakeCloseEnabled
+        shakeCloseCheckbox.title = L("settings_shake_close")
+        shakeCloseCheckbox.state = isShakeCloseEnabled ? .on : .off
+        shakeCloseCheckbox.isEnabled = isShakeEnabled
+        shakeCloseCheckbox.alphaValue = isShakeEnabled ? 1.0 : 0.4
         
         shakeSensitivityTitle.stringValue = L("settings_shake_sensitivity")
         sliderSlowLabel.stringValue = L("slider_slow")
@@ -323,9 +330,9 @@ final class SettingsWindowController: NSWindowController {
         shakeSlider.integerValue = sens.rawValue
         updateSliderLevelLabel(for: sens.rawValue)
         
-        let alpha: CGFloat = isShakeDisabled ? 0.4 : 1.0
+        let alpha: CGFloat = isShakeEnabled ? 1.0 : 0.4
         shakeSensitivityTitle.alphaValue = alpha
-        shakeSlider.isEnabled = !isShakeDisabled
+        shakeSlider.isEnabled = isShakeEnabled
         shakeSlider.alphaValue = alpha
         sliderSlowLabel.alphaValue = alpha
         sliderFastLabel.alphaValue = alpha
@@ -373,9 +380,12 @@ final class SettingsWindowController: NSWindowController {
     }
     
     @objc private func shakeToggled() {
-        let isEnabled = shakeCheckbox.state == .on
-        UserDefaults.standard.set(!isEnabled, forKey: "MacFileRelay_DisableShake")
+        ShakeDetector.shared.isShakeEnabled = (shakeCheckbox.state == .on)
         refreshText()
+    }
+    
+    @objc private func shakeCloseToggled() {
+        ShakeDetector.shared.isShakeCloseEnabled = (shakeCloseCheckbox.state == .on)
     }
     
     @objc private func sliderChanged() {

@@ -8,11 +8,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         shelfWindow = FloatingShelfWindow()
         menuBarController = MenuBarController(shelfWindow: shelfWindow)
         
-        // Shake detector: Shake once to open, shake again to close immediately!
+        // Shake detector: Shake once to open, shake again to close immediately (if enabled)!
         ShakeDetector.shared.onShake = { [weak self] mousePoint in
             guard let self = self else { return }
             if self.shelfWindow.isShelfVisible {
-                self.shelfWindow.hideShelf()
+                if ShakeDetector.shared.isShakeCloseEnabled {
+                    self.shelfWindow.hideShelf()
+                }
             } else {
                 self.shelfWindow.showNear(point: mousePoint)
             }

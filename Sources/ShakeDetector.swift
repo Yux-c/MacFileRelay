@@ -11,7 +11,7 @@ enum ShakeSensitivity: Int, CaseIterable {
         switch self {
         case .veryLow: return 36.0
         case .low: return 24.0
-        case .normal: return 16.0  // Default
+        case .normal: return 16.0
         case .high: return 11.0
         case .veryHigh: return 7.0
         }
@@ -43,11 +43,38 @@ final class ShakeDetector {
     var onShake: ((NSPoint) -> Void)?
     
     private let sensitivityKey = "MacFileRelay_ShakeSensitivity"
+    private let enableShakeKey = "MacFileRelay_EnableShake"
+    private let enableShakeCloseKey = "MacFileRelay_EnableShakeClose"
+    
+    // Default: Enabled (true)
+    var isShakeEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: enableShakeKey) == nil {
+                return true
+            }
+            return UserDefaults.standard.bool(forKey: enableShakeKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: enableShakeKey)
+        }
+    }
+    
+    // Default: Enabled (true)
+    var isShakeCloseEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: enableShakeCloseKey) == nil {
+                return true
+            }
+            return UserDefaults.standard.bool(forKey: enableShakeCloseKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: enableShakeCloseKey)
+        }
+    }
     
     var sensitivity: ShakeSensitivity {
         get {
             let val = UserDefaults.standard.integer(forKey: sensitivityKey)
-            // Default 3 (Normal / Middle)
             return (val >= 1 && val <= 5) ? (ShakeSensitivity(rawValue: val) ?? .normal) : .normal
         }
         set {
@@ -90,9 +117,7 @@ final class ShakeDetector {
     }
     
     private func handleMovement(point: NSPoint) {
-        if UserDefaults.standard.bool(forKey: "MacFileRelay_DisableShake") {
-            return
-        }
+        guard isShakeEnabled else { return }
         
         let now = Date().timeIntervalSinceReferenceDate
         // 0.35s snappy cooldown after triggering so shake-again immediately closes!
