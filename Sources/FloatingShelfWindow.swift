@@ -2,6 +2,27 @@ import Cocoa
 import QuartzCore
 import QuickLookUI
 
+final class HorizontalScrollView: NSScrollView {
+    override func scrollWheel(with event: NSEvent) {
+        // Convert vertical mouse scroll wheel (deltaY) into horizontal scrolling
+        if event.deltaX == 0 && event.deltaY != 0 {
+            let delta = event.hasPreciseScrollingDeltas ? event.scrollingDeltaY : (event.deltaY * 20.0)
+            let currentOrigin = documentVisibleRect.origin
+            var newX = currentOrigin.x - delta
+            
+            if let docView = documentView {
+                let maxX = max(0, docView.bounds.width - bounds.width)
+                newX = max(0, min(newX, maxX))
+            }
+            
+            contentView.scroll(to: NSPoint(x: newX, y: currentOrigin.y))
+            reflectScrolledClipView(contentView)
+            return
+        }
+        super.scrollWheel(with: event)
+    }
+}
+
 final class DraggableHeaderView: NSView {
     override var mouseDownCanMoveWindow: Bool {
         return true
@@ -32,7 +53,7 @@ final class FloatingShelfView: NSView {
     let settingsButton = NSButton()
     let closeButton = NSButton()
     
-    let scrollView = NSScrollView()
+    let scrollView = HorizontalScrollView()
     let shelfGridView = ShelfGridView()
     
     override init(frame frameRect: NSRect) {
@@ -155,7 +176,7 @@ final class FloatingShelfView: NSView {
         clearAllButton.action = #selector(clearAllClicked)
         headerView.addSubview(clearAllButton)
         
-        // ScrollView - Extended height with ample top/bottom margin
+        // ScrollView - Extended height with ample top/bottom margin & mouse wheel support
         scrollView.frame = NSRect(x: 6, y: 6, width: bounds.width - 12, height: bounds.height - 46)
         scrollView.autoresizingMask = [.width, .height]
         scrollView.drawsBackground = false
@@ -303,24 +324,32 @@ final class FloatingShelfWindow: NSPanel {
         // Spacebar & ESC Key monitor
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self, self.isShelfVisible else { return event }
-            if event.keyCode == 49 { // Spacebar
-                if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
-                    QuickLookCoordinator.shared.preview(url: targetURL)
+            let flags = event.modifierFlags.intersection([.command, .option, .shift, .control])
+            
+            if flags.isEmpty {
+                if event.keyCode == 49 { // Spacebar
+                    if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
+                        QuickLookCoordinator.shared.preview(url: targetURL)
+                        return nil
+                    }
+                } else if event.keyCode == 53 { // ESC
+                    self.hideShelf()
                     return nil
                 }
-            } else if event.keyCode == 53 { // ESC
-                self.hideShelf()
-                return nil
             }
             return event
         }
         
         NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self, self.isShelfVisible else { return }
-            if event.keyCode == 49 { // Spacebar
-                if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
-                    DispatchQueue.main.async {
-                        QuickLookCoordinator.shared.preview(url: targetURL)
+            let flags = event.modifierFlags.intersection([.command, .option, .shift, .control])
+            
+            if flags.isEmpty {
+                if event.keyCode == 49 { // Spacebar
+                    if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
+                        DispatchQueue.main.async {
+                            QuickLookCoordinator.shared.preview(url: targetURL)
+                        }
                     }
                 }
             }
