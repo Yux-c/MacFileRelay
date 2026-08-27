@@ -120,10 +120,12 @@ final class SettingsWindowController: NSWindowController {
     // Shake Section
     private let shakeCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     private let shakeDesc = NSTextField(labelWithString: "")
+    private let shakeSensitivityTitle = NSTextField(labelWithString: "")
+    private let shakeSensitivityPopup = NSPopUpButton()
     
     init() {
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 450, height: 350),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 390),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -158,17 +160,17 @@ final class SettingsWindowController: NSWindowController {
         // Window Title
         titleLabel.font = NSFont.systemFont(ofSize: 15, weight: .bold)
         titleLabel.textColor = .labelColor
-        titleLabel.frame = NSRect(x: 24, y: contentView.bounds.height - 48, width: 390, height: 24)
+        titleLabel.frame = NSRect(x: 24, y: contentView.bounds.height - 46, width: 400, height: 24)
         visualEffect.addSubview(titleLabel)
         
-        var currentY = contentView.bounds.height - 90
+        var currentY = contentView.bounds.height - 86
         
         // 1. Language Section
         langTitle.font = NSFont.systemFont(ofSize: 12, weight: .medium)
         langTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
         visualEffect.addSubview(langTitle)
         
-        langPopup.frame = NSRect(x: 170, y: currentY - 2, width: 240, height: 26)
+        langPopup.frame = NSRect(x: 170, y: currentY - 2, width: 250, height: 26)
         for lang in AppLanguage.allCases {
             langPopup.addItem(withTitle: lang.displayName)
         }
@@ -176,7 +178,7 @@ final class SettingsWindowController: NSWindowController {
         langPopup.action = #selector(languageChanged)
         visualEffect.addSubview(langPopup)
         
-        currentY -= 50
+        currentY -= 48
         
         // 2. Hotkey Section
         hotkeyTitle.font = NSFont.systemFont(ofSize: 12, weight: .medium)
@@ -192,7 +194,7 @@ final class SettingsWindowController: NSWindowController {
         hotkeyClearBtn.image = NSImage(systemSymbolName: "xmark.circle.fill", accessibilityDescription: "Clear Shortcut")?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 14, weight: .medium))
         hotkeyClearBtn.contentTintColor = NSColor.secondaryLabelColor
-        hotkeyClearBtn.frame = NSRect(x: 296, y: currentY - 1, width: 24, height: 24)
+        hotkeyClearBtn.frame = NSRect(x: 298, y: currentY - 1, width: 24, height: 24)
         hotkeyClearBtn.target = self
         hotkeyClearBtn.action = #selector(clearHotkey)
         visualEffect.addSubview(hotkeyClearBtn)
@@ -200,40 +202,52 @@ final class SettingsWindowController: NSWindowController {
         // Reset Hotkey Button
         hotkeyResetBtn.bezelStyle = .rounded
         hotkeyResetBtn.title = "恢复默认"
-        hotkeyResetBtn.frame = NSRect(x: 326, y: currentY - 3, width: 85, height: 28)
+        hotkeyResetBtn.frame = NSRect(x: 328, y: currentY - 3, width: 92, height: 28)
         hotkeyResetBtn.target = self
         hotkeyResetBtn.action = #selector(resetHotkey)
         visualEffect.addSubview(hotkeyResetBtn)
         
         hotkeyHint.font = NSFont.systemFont(ofSize: 10, weight: .regular)
         hotkeyHint.textColor = .secondaryLabelColor
-        hotkeyHint.frame = NSRect(x: 170, y: currentY - 22, width: 250, height: 16)
+        hotkeyHint.frame = NSRect(x: 170, y: currentY - 20, width: 260, height: 16)
         visualEffect.addSubview(hotkeyHint)
         
-        currentY -= 60
+        currentY -= 56
         
         // 3. AutoClean Section
         autoCleanTitle.font = NSFont.systemFont(ofSize: 12, weight: .medium)
         autoCleanTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
         visualEffect.addSubview(autoCleanTitle)
         
-        autoCleanPopup.frame = NSRect(x: 170, y: currentY - 2, width: 240, height: 26)
+        autoCleanPopup.frame = NSRect(x: 170, y: currentY - 2, width: 250, height: 26)
         autoCleanPopup.target = self
         autoCleanPopup.action = #selector(autoCleanChanged)
         visualEffect.addSubview(autoCleanPopup)
         
-        currentY -= 50
+        currentY -= 48
         
         // 4. Shake Section
-        shakeCheckbox.frame = NSRect(x: 24, y: currentY, width: 390, height: 20)
+        shakeCheckbox.frame = NSRect(x: 24, y: currentY, width: 400, height: 20)
         shakeCheckbox.target = self
         shakeCheckbox.action = #selector(shakeToggled)
         visualEffect.addSubview(shakeCheckbox)
         
         shakeDesc.font = NSFont.systemFont(ofSize: 10, weight: .regular)
         shakeDesc.textColor = .secondaryLabelColor
-        shakeDesc.frame = NSRect(x: 44, y: currentY - 18, width: 370, height: 16)
+        shakeDesc.frame = NSRect(x: 44, y: currentY - 16, width: 380, height: 16)
         visualEffect.addSubview(shakeDesc)
+        
+        currentY -= 44
+        
+        // 5. Shake Sensitivity
+        shakeSensitivityTitle.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        shakeSensitivityTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
+        visualEffect.addSubview(shakeSensitivityTitle)
+        
+        shakeSensitivityPopup.frame = NSRect(x: 170, y: currentY - 2, width: 250, height: 26)
+        shakeSensitivityPopup.target = self
+        shakeSensitivityPopup.action = #selector(sensitivityChanged)
+        visualEffect.addSubview(shakeSensitivityPopup)
         
         refreshText()
     }
@@ -272,8 +286,30 @@ final class SettingsWindowController: NSWindowController {
         }
         
         shakeCheckbox.title = L("settings_shake")
-        shakeCheckbox.state = UserDefaults.standard.bool(forKey: "MacFileRelay_DisableShake") ? .off : .on
+        let isShakeDisabled = UserDefaults.standard.bool(forKey: "MacFileRelay_DisableShake")
+        shakeCheckbox.state = isShakeDisabled ? .off : .on
         shakeDesc.stringValue = L("settings_shake_desc")
+        
+        shakeSensitivityTitle.stringValue = L("settings_shake_sensitivity")
+        shakeSensitivityTitle.alphaValue = isShakeDisabled ? 0.4 : 1.0
+        shakeSensitivityPopup.isEnabled = !isShakeDisabled
+        shakeSensitivityPopup.alphaValue = isShakeDisabled ? 0.4 : 1.0
+        
+        shakeSensitivityPopup.removeAllItems()
+        let sensOptions: [(String, ShakeSensitivity)] = [
+            (L("shake_high"), .high),
+            (L("shake_normal"), .normal),
+            (L("shake_low"), .low),
+            (L("shake_very_low"), .veryLow)
+        ]
+        let currentSens = ShakeDetector.shared.sensitivity
+        for (idx, opt) in sensOptions.enumerated() {
+            shakeSensitivityPopup.addItem(withTitle: opt.0)
+            shakeSensitivityPopup.item(at: idx)?.tag = opt.1.rawValue
+            if opt.1 == currentSens {
+                shakeSensitivityPopup.selectItem(at: idx)
+            }
+        }
     }
     
     @objc func refreshShortcut() {
@@ -308,6 +344,14 @@ final class SettingsWindowController: NSWindowController {
     @objc private func shakeToggled() {
         let isEnabled = shakeCheckbox.state == .on
         UserDefaults.standard.set(!isEnabled, forKey: "MacFileRelay_DisableShake")
+        refreshText()
+    }
+    
+    @objc private func sensitivityChanged() {
+        if let selectedItem = shakeSensitivityPopup.selectedItem,
+           let sens = ShakeSensitivity(rawValue: selectedItem.tag) {
+            ShakeDetector.shared.sensitivity = sens
+        }
     }
     
     func showSettings() {

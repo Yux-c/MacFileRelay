@@ -1,8 +1,54 @@
 import Cocoa
 
+enum ShakeSensitivity: Int, CaseIterable {
+    case high = 1
+    case normal = 2
+    case low = 3
+    case veryLow = 4
+    
+    var threshold: CGFloat {
+        switch self {
+        case .high: return 10.0
+        case .normal: return 16.0
+        case .low: return 26.0
+        case .veryLow: return 36.0
+        }
+    }
+    
+    var requiredReversals: Int {
+        switch self {
+        case .high: return 2
+        case .normal: return 3
+        case .low: return 3
+        case .veryLow: return 4
+        }
+    }
+    
+    var timeWindow: TimeInterval {
+        switch self {
+        case .high: return 0.38
+        case .normal: return 0.42
+        case .low: return 0.50
+        case .veryLow: return 0.55
+        }
+    }
+}
+
 final class ShakeDetector {
     static let shared = ShakeDetector()
     var onShake: ((NSPoint) -> Void)?
+    
+    private let sensitivityKey = "MacFileRelay_ShakeSensitivity"
+    
+    var sensitivity: ShakeSensitivity {
+        get {
+            let val = UserDefaults.standard.integer(forKey: sensitivityKey)
+            return ShakeSensitivity(rawValue: val) ?? .normal
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: sensitivityKey)
+        }
+    }
     
     private var samplePoints: [(x: CGFloat, time: TimeInterval)] = []
     private var lastDirection: Int = 0
@@ -42,12 +88,15 @@ final class ShakeDetector {
         if UserDefaults.standard.bool(forKey: "MacFileRelay_DisableShake") {
             return
         }
+        
         let now = Date().timeIntervalSinceReferenceDate
         // 0.8s cooldown after triggering to prevent repeated popups
         if now - lastTriggerTime < 0.8 { return }
         
+        let config = sensitivity
+        
         samplePoints.append((x: point.x, time: now))
-        samplePoints = samplePoints.filter { now - $0.time < 0.42 }
+        samplePoints = samplePoints.filter { now - $0.time < config.timeWindow }
         
         guard samplePoints.count >= 3 else { return }
         
@@ -55,15 +104,13 @@ final class ShakeDetector {
         let p2 = samplePoints[samplePoints.count - 1]
         let deltaX = p2.x - p1.x
         
-        let threshold: CGFloat = 16.0
-        if abs(deltaX) > threshold {
+        if abs(deltaX) > config.threshold {
             let currentDir = deltaX > 0 ? 1 : -1
             if lastDirection != 0 && currentDir != lastDirection {
                 directionReversals += 1
                 lastReversalTime = now
                 
-                // 3 rapid left-right direction reversals trigger the shelf!
-                if directionReversals >= 3 {
+                if directionReversals >= config.requiredReversals {
                     lastTriggerTime = now
                     directionReversals = 0
                     samplePoints.removeAll()
@@ -77,7 +124,7 @@ final class ShakeDetector {
             lastDirection = currentDir
         }
         
-        if now - lastReversalTime > 0.42 {
+        if now - lastReversalTime > config.timeWindow {
             directionReversals = 0
         }
     }

@@ -76,7 +76,12 @@ final class LocalizationManager {
         case "settings_hotkey_hint": return isZh ? "点击录制新按键，点 ✖️ 可不绑定快捷键" : "Click to record, or click ✖️ to unbind shortcut"
         case "hotkey_none": return isZh ? "无" : "None"
         case "settings_shake": return isZh ? "拖拽文件时摇晃光标就地弹出" : "Shake cursor to summon while dragging files"
-        case "settings_shake_desc": return isZh ? "开启后，按住文件晃动两下鼠标即可就地展开中转站" : "When enabled, wiggling your mouse triggers the shelf beside cursor"
+        case "settings_shake_desc": return isZh ? "按住文件晃动鼠标即可就地展开中转站" : "Wiggle mouse while dragging to summon shelf beside cursor"
+        case "settings_shake_sensitivity": return isZh ? "摇晃灵敏度：" : "Shake Sensitivity:"
+        case "shake_high": return isZh ? "⚡ 高灵敏度 (轻微晃动即出)" : "⚡ High (Gentle wiggles)"
+        case "shake_normal": return isZh ? "🎯 标准灵敏度 (默认推荐)" : "🎯 Normal (Recommended)"
+        case "shake_low": return isZh ? "🛡️ 低灵敏度 (需要较大幅度)" : "🛡️ Low (Larger movements)"
+        case "shake_very_low": return isZh ? "🧊 极低灵敏度 (大幅剧烈摇晃)" : "🧊 Very Low (Vigorous shakes)"
         
         default: return key
         }
