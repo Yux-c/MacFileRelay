@@ -330,6 +330,56 @@ final class ShelfGridView: NSView {
         frame = NSRect(x: 0, y: 0, width: totalWidth, height: parentHeight)
     }
     
+    // MARK: - Select All (Command + A)
+    func selectAllItems() {
+        let items = StorageManager.shared.items
+        guard !items.isEmpty else { return }
+        
+        selectedItemIDs = Set(items.map { $0.id })
+        updateCardSelectionStates()
+        notifySelectionChanged()
+        
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+    }
+    
+    // MARK: - Copy (Command + C)
+    func copySelectedItemsToClipboard() {
+        let items = StorageManager.shared.items
+        var itemsToCopy = items.filter { selectedItemIDs.contains($0.id) }
+        
+        // If no multi-selection, copy hovered or first item
+        if itemsToCopy.isEmpty, let targetURL = currentFocusedItemURL,
+           let item = items.first(where: { $0.url == targetURL }) {
+            itemsToCopy = [item]
+        }
+        
+        guard !itemsToCopy.isEmpty else { return }
+        
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        
+        let urls = itemsToCopy.map { $0.url as NSURL }
+        pasteboard.writeObjects(urls)
+        
+        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        NSSound(named: "Pop")?.play()
+    }
+    
+    // MARK: - Batch Delete (Delete / Backspace key)
+    func deleteSelectedItems() {
+        let items = StorageManager.shared.items
+        let toDelete = items.filter { selectedItemIDs.contains($0.id) }
+        guard !toDelete.isEmpty else { return }
+        
+        for item in toDelete {
+            StorageManager.shared.removeFile(item)
+        }
+        selectedItemIDs.removeAll()
+        reload()
+        onItemsUpdated?()
+        NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
+    }
+    
     private func handleCardClicked(_ card: ShelfItemCardView, flags: NSEvent.ModifierFlags) {
         let items = StorageManager.shared.items
         guard let clickedIndex = items.firstIndex(where: { $0.id == card.item.id }) else { return }
