@@ -32,7 +32,20 @@ final class StorageManager {
     
     private init() {
         let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        storageDirectory = appSupport.appendingPathComponent("NotchDrop/ShelvedFiles", isDirectory: true)
+        storageDirectory = appSupport.appendingPathComponent("ShakeDrop/ShelvedFiles", isDirectory: true)
+        
+        // Migrate old NotchDrop files if existing
+        let oldStorage = appSupport.appendingPathComponent("NotchDrop/ShelvedFiles", isDirectory: true)
+        if fileManager.fileExists(atPath: oldStorage.path) {
+            try? fileManager.createDirectory(at: storageDirectory, withIntermediateDirectories: true)
+            if let oldFiles = try? fileManager.contentsOfDirectory(at: oldStorage, includingPropertiesForKeys: nil) {
+                for file in oldFiles {
+                    let dest = storageDirectory.appendingPathComponent(file.lastPathComponent)
+                    try? fileManager.moveItem(at: file, to: dest)
+                }
+            }
+            try? fileManager.removeItem(at: oldStorage)
+        }
         
         try? fileManager.createDirectory(at: storageDirectory, withIntermediateDirectories: true)
         reloadItems()
@@ -52,7 +65,6 @@ final class StorageManager {
         var loadedItems: [ShelvedItem] = []
         for url in fileURLs {
             let resourceValues = try? url.resourceValues(forKeys: [.contentModificationDateKey, .creationDateKey, .fileSizeKey])
-            // Use content modification date (which we update to Date() when shelved into NotchDrop)
             let addedDate = resourceValues?.contentModificationDate ?? resourceValues?.creationDate ?? Date()
             let fileSize = Int64(resourceValues?.fileSize ?? 0)
             
@@ -76,8 +88,6 @@ final class StorageManager {
         do {
             try fileManager.copyItem(at: sourceURL, to: destinationURL)
             
-            // Crucial: Set creation & modification date of the shelved copy to NOW
-            // This ensures auto-cleanup timer counts from the moment it enters NotchDrop, NOT when the song was created years ago!
             let now = Date()
             try? fileManager.setAttributes([
                 .creationDate: now,
@@ -87,7 +97,7 @@ final class StorageManager {
             reloadItems()
             return true
         } catch {
-            print("Failed to copy file to NotchDrop storage: \(error)")
+            print("Failed to copy file to ShakeDrop storage: \(error)")
             return false
         }
     }

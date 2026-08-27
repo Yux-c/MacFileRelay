@@ -5,7 +5,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarController: MenuBarController!
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Initialize Floating Shelf Window
         shelfWindow = FloatingShelfWindow()
         menuBarController = MenuBarController(shelfWindow: shelfWindow)
         
@@ -18,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Initial auto-clean
         AutoCleanManager.shared.performCleanup()
         
-        print("NotchDrop (Shake to Drop) initialized successfully.")
+        print("ShakeDrop (Shake to Drop) initialized successfully.")
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {

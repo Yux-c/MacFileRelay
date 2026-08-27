@@ -1,4 +1,4 @@
-# 📦 NotchDrop (Shake-to-Drop Tray for macOS)
+# 📦 ShakeDrop (Shake-to-Drop Tray for macOS)
 
 > 纯原生 Swift 编写的超轻量 macOS 暂存托盘应用。随时摇晃鼠标就地暂存，告别杂乱，支持定时自动清理与极速拖出。
 
@@ -17,7 +17,7 @@
 - **📤 随时拖出到微信/邮件/访达**：
   按住卡片直接拖出到任何聊天软件、邮件或文件夹中完成发送或移动。
 - **👀 空格键快速预览 (QuickLook)**：
-  原生集成 macOS QuickLook，选中文件按 Space 键即可秒级预览图片、音乐、视频与代码。
+  原生集成 macOS QuickLook，选中文件按 Space 键或点击卡片眼睛图标即可秒级预览图片、音乐、视频与代码。
 - **🧰 一键 ZIP 打包**：
   点击右上角拉链图标，一秒将托盘内所有暂存文件压缩打包为 `.zip`。
 - **⚡ 极致轻量与省电**：
@@ -31,7 +31,7 @@
 | :--- | :--- | :--- |
 | **就地唤出 / 暂存** | 拖拽文件时**摇晃鼠标** | 在当前鼠标光标旁就地展开托盘 |
 | **快捷打开 / 隐藏** | **`⌥ + D`** (Option + D) | 随时在鼠标位置召唤或收起托盘 |
-| **快速预览文件** | **`Space`** (空格键) | 调出 macOS 原生 QuickLook 预览 |
+| **快速预览文件** | **`Space`** (空格键) 或点击 **`👁️`** | 调出 macOS 原生 QuickLook 预览 |
 | **菜单栏常驻** | 点击顶部菜单栏 **`📥`** 图标 | 快速查看、清空或修改自动清理周期 |
 
 ---
@@ -42,8 +42,8 @@
 
 ```bash
 # 1. 克隆代码仓库
-git clone https://github.com/zyx2950129051-commits/NotchDrop.git
-cd NotchDrop
+git clone https://github.com/zyx2950129051-commits/ShakeDrop.git
+cd ShakeDrop
 
 # 2. 一键编译并安装到 /Applications
 chmod +x build.sh

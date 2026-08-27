@@ -13,7 +13,7 @@ final class MenuBarController {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "tray.and.arrow.down.fill", accessibilityDescription: "NotchDrop")?
+            button.image = NSImage(systemSymbolName: "tray.and.arrow.down.fill", accessibilityDescription: "ShakeDrop")?
                 .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 13, weight: .medium))
             button.target = self
             button.action = #selector(statusBarClicked(_:))
@@ -72,7 +72,7 @@ final class MenuBarController {
         
         menu.addItem(NSMenuItem.separator())
         
-        let quitItem = NSMenuItem(title: "❌ 退出 NotchDrop", action: #selector(quitApp), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: "❌ 退出 ShakeDrop", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
         
