@@ -53,20 +53,44 @@ final class FloatingShelfView: NSView {
         headerView.autoresizingMask = [.width, .minYMargin]
         backgroundEffect.addSubview(headerView)
         
+        // Left text items with perfect font baseline alignment
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.isBordered = false
+        titleLabel.drawsBackground = false
+        titleLabel.isEditable = false
+        titleLabel.isSelectable = false
         titleLabel.font = NSFont.systemFont(ofSize: 13, weight: .bold)
         titleLabel.textColor = .labelColor
-        titleLabel.frame = NSRect(x: 16, y: 10, width: 88, height: 20)
         headerView.addSubview(titleLabel)
         
+        countLabel.translatesAutoresizingMaskIntoConstraints = false
+        countLabel.isBordered = false
+        countLabel.drawsBackground = false
+        countLabel.isEditable = false
+        countLabel.isSelectable = false
         countLabel.font = NSFont.systemFont(ofSize: 11, weight: .medium)
         countLabel.textColor = .secondaryLabelColor
-        countLabel.frame = NSRect(x: 108, y: 10, width: 140, height: 20)
         headerView.addSubview(countLabel)
         
+        autoCleanBadge.translatesAutoresizingMaskIntoConstraints = false
+        autoCleanBadge.isBordered = false
+        autoCleanBadge.drawsBackground = false
+        autoCleanBadge.isEditable = false
+        autoCleanBadge.isSelectable = false
         autoCleanBadge.font = NSFont.systemFont(ofSize: 10, weight: .regular)
         autoCleanBadge.textColor = .tertiaryLabelColor
-        autoCleanBadge.frame = NSRect(x: 250, y: 11, width: 100, height: 18)
         headerView.addSubview(autoCleanBadge)
+        
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
+            
+            countLabel.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 8),
+            countLabel.firstBaselineAnchor.constraint(equalTo: titleLabel.firstBaselineAnchor),
+            
+            autoCleanBadge.leadingAnchor.constraint(equalTo: countLabel.trailingAnchor, constant: 6),
+            autoCleanBadge.firstBaselineAnchor.constraint(equalTo: titleLabel.firstBaselineAnchor)
+        ])
         
         // Close Button
         closeButton.bezelStyle = .texturedRounded
@@ -150,8 +174,6 @@ final class FloatingShelfView: NSView {
     
     @objc func updateLocalizedTexts() {
         titleLabel.stringValue = L("shelf_title")
-        titleLabel.sizeToFit()
-        titleLabel.frame = NSRect(x: 16, y: 10, width: titleLabel.frame.width, height: 20)
         
         closeButton.toolTip = L("btn_close")
         settingsButton.toolTip = L("btn_settings")
@@ -171,8 +193,6 @@ final class FloatingShelfView: NSView {
         } else {
             countLabel.stringValue = L("empty_state")
         }
-        countLabel.sizeToFit()
-        countLabel.frame = NSRect(x: titleLabel.frame.maxX + 6, y: 10, width: countLabel.frame.width, height: 20)
         
         let hours = AutoCleanManager.shared.retentionHours
         if hours > 0 {
@@ -180,8 +200,6 @@ final class FloatingShelfView: NSView {
         } else {
             autoCleanBadge.stringValue = L("manual_clean_badge")
         }
-        autoCleanBadge.sizeToFit()
-        autoCleanBadge.frame = NSRect(x: countLabel.frame.maxX + 6, y: 11, width: autoCleanBadge.frame.width, height: 18)
         
         clearAllButton.isHidden = count == 0
         zipButton.isHidden = count == 0
@@ -375,7 +393,7 @@ final class FloatingShelfWindow: NSPanel {
         }
         
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.2
+            context.duration = 0.18
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             self.animator().alphaValue = 0.0
         }, completionHandler: {
