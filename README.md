@@ -1,7 +1,7 @@
 # 📦 Mac 文件中转站 (MacFileRelay)
 
 <p align="center">
-  <b>极简 · 原生 · 无感 · 0 误触的 macOS 摇晃拖拽文件中转站</b><br>
+  <b>极简 · 原生 · 无感 · 极速的 macOS 摇晃拖拽文件中转站</b><br>
   <i>Ultra-lightweight, native macOS shake-to-drop file shelf & relay station.</i>
 </p>
 
@@ -16,17 +16,15 @@
 1. **🪅 摇晃鼠标，就地中转**：
    - 拖拽任意文件时，在屏幕任何位置**轻轻左右晃动两下光标**，毛玻璃中转站立刻在鼠标旁就地展开！
    - 原地暂存、原地释放，无需特意拖到屏幕边缘或顶部。
-2. **🛡️ 纯净无干扰，零误触**：
-   - 屏幕顶部与四周无任何常驻热区，彻底避免误触发 macOS 调度中心（Mission Control）或窗口顶部标签栏。
-3. **📑 多文件连续暂存**：
+2. **📑 多文件连续暂存**：
    - 支持多次分批拖入任意数量的文件，横向流式列表，支持触摸板/滚轮自由滑动浏览。
-4. **⏱️ 智能定时自动清理**：
+3. **⏱️ 智能定时自动清理**：
    - 文件存入时自动开启倒计时（支持 1h / 12h / 24h / 3天 / 7天 / 仅手动），过期后**安全移入系统废纸篓**，绝不残留文件垃圾。
-5. **📤 极速拖出到微信/邮件/访达**：
+4. **📤 极速拖出到微信/邮件/访达**：
    - 鼠标按住卡片直接拖到聊天窗口、邮件或任意文件夹即可完成发送。
-6. **👀 空格秒级预览 (QuickLook)**：
+5. **👀 空格秒级预览 (QuickLook)**：
    - 悬停卡片按 `Space` 空格键或点击 `👁️` 眼睛图标，立即调出 macOS 原生 QuickLook 大图/音视频预览。
-7. **⚡ 极致轻量与省电**：
+6. **⚡ 极致轻量与省电**：
    - 零网页套壳，纯原生编译，待命时 **0.0% CPU**，内存仅十几 MB。
 
 ### ⌨️ 快捷操作
@@ -49,7 +47,6 @@
 ### 🌟 Key Features
 
 - **Shake to Summon**: Simply shake your cursor while dragging files, and the relay shelf appears right next to your pointer.
-- **Zero Mis-triggers**: No annoying notch or screen edge hotspots. Never interferes with Mission Control.
 - **Multi-File Shelf**: Drop multiple files at once or append over time with horizontal scrolling.
 - **Auto-Cleanup Engine**: Automatically moves stale files to the macOS Trash after your chosen retention period (1h, 12h, 24h, 3d, 7d).
 - **Native QuickLook**: Spacebar preview for images, audio, video, PDFs, and code.
