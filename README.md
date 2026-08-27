@@ -3,8 +3,8 @@
 <p align="center">
   <b>极简 · 原生 · 无感 · 极速的 macOS 摇晃拖拽文件中转站</b><br>
   <i>Ultra-lightweight, native macOS shake-to-drop file shelf & relay station.</i><br><br>
-  <a href="https://github.com/zyx2950129051-commits/MacFileRelay/releases/latest">
-    <img src="https://img.shields.io/github/v/release/zyx2950129051-commits/MacFileRelay?color=blue&label=%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85%E5%8C%85%20(DMG)&logo=apple" alt="Download DMG">
+  <a href="https://github.com/Yux-c/MacFileRelay/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Yux-c/MacFileRelay?color=blue&label=%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85%E5%8C%85%20(DMG)&logo=apple" alt="Download DMG">
   </a>
 </p>
 
@@ -61,7 +61,7 @@
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/zyx2950129051-commits/MacFileRelay.git
+git clone https://github.com/Yux-c/MacFileRelay.git
 cd MacFileRelay
 
 # 2. One-click build and install
