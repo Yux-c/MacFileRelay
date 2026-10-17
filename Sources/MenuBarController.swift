@@ -56,28 +56,6 @@ final class MenuBarController {
         
         menu.addItem(NSMenuItem.separator())
         
-        let hours = AutoCleanManager.shared.retentionHours
-        let autoCleanSubmenu = NSMenu()
-        let options: [(String, Int)] = [
-            (L("autoclean_1h"), 1),
-            (L("autoclean_12h"), 12),
-            (L("autoclean_24h"), 24),
-            (L("autoclean_3d"), 72),
-            (L("autoclean_7d"), 168),
-            (L("autoclean_never"), 0)
-        ]
-        for (title, h) in options {
-            let item = NSMenuItem(title: title, action: #selector(changeAutoCleanHour(_:)), keyEquivalent: "")
-            item.target = self
-            item.tag = h
-            item.state = (hours == h) ? .on : .off
-            autoCleanSubmenu.addItem(item)
-        }
-        
-        let autoCleanItem = NSMenuItem(title: L("menu_autoclean"), action: nil, keyEquivalent: "")
-        autoCleanItem.submenu = autoCleanSubmenu
-        menu.addItem(autoCleanItem)
-        
         let clearItem = NSMenuItem(title: L("menu_clear"), action: #selector(clearAll), keyEquivalent: "")
         clearItem.target = self
         menu.addItem(clearItem)
@@ -105,15 +83,10 @@ final class MenuBarController {
         SettingsWindowController.shared.showSettings()
     }
     
-    @objc private func changeAutoCleanHour(_ sender: NSMenuItem) {
-        AutoCleanManager.shared.retentionHours = sender.tag
-        shelfWindow?.shelfView.updateItemCount()
-    }
-    
     @objc private func clearAll() {
-        StorageManager.shared.clearAll()
-        shelfWindow?.shelfView.shelfGridView.reload()
-        shelfWindow?.shelfView.updateItemCount()
+        if FloatingShelfView.confirmClearAll() {
+            StorageManager.shared.clearAll()
+        }
     }
     
     @objc private func openFolder() {

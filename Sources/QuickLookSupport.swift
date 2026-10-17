@@ -26,6 +26,7 @@ final class QuickLookCoordinator: NSObject, QLPreviewPanelDataSource, QLPreviewP
             return
         }
         
+        HoverPreviewController.shared.hide()
         currentItem = QuickLookItem(url: url)
         panel.dataSource = self
         panel.delegate = self

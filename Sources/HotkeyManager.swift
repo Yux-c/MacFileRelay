@@ -114,6 +114,7 @@ final class HotkeyManager {
                 UserDefaults.standard.set(true, forKey: isUnboundKey)
                 UserDefaults.standard.removeObject(forKey: hotkeyKey)
             }
+            registerHotKey()
             NotificationCenter.default.post(name: .shortcutDidChange, object: nil)
         }
     }
@@ -122,36 +123,63 @@ final class HotkeyManager {
         currentShortcut?.displayString ?? L("hotkey_none")
     }
     
+    private var hotKeyRef: EventHotKeyRef?
+    private var eventHandlerRef: EventHandlerRef?
+    private var isSuspended = false
+    
     private init() {
-        setupGlobalMonitor()
+        installEventHandler()
+        registerHotKey()
     }
     
-    private func setupGlobalMonitor() {
-        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.checkEvent(event)
-        }
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if self?.checkEvent(event) == true {
-                return nil
+    // Carbon hot keys work system-wide without the Accessibility permission that a global
+    // NSEvent keyDown monitor needs, and they swallow the keystroke instead of passing it on.
+    private func installEventHandler() {
+        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
+            DispatchQueue.main.async {
+                HotkeyManager.shared.onShortcutTriggered?()
             }
-            return event
+            return noErr
+        }, 1, &eventType, nil, &eventHandlerRef)
+    }
+    
+    private func registerHotKey() {
+        unregisterHotKey()
+        guard !isSuspended, let shortcut = currentShortcut else { return }
+        
+        let flags = NSEvent.ModifierFlags(rawValue: shortcut.modifierFlags)
+        var carbonModifiers: UInt32 = 0
+        if flags.contains(.command) { carbonModifiers |= UInt32(cmdKey) }
+        if flags.contains(.option) { carbonModifiers |= UInt32(optionKey) }
+        if flags.contains(.shift) { carbonModifiers |= UInt32(shiftKey) }
+        if flags.contains(.control) { carbonModifiers |= UInt32(controlKey) }
+        
+        let hotKeyID = EventHotKeyID(signature: OSType(0x4D46_524C), id: 1) // 'MFRL'
+        let status = RegisterEventHotKey(UInt32(shortcut.keyCode), carbonModifiers, hotKeyID,
+                                         GetApplicationEventTarget(), 0, &hotKeyRef)
+        if status != noErr {
+            print("MacFileRelay: Failed to register hot key \(shortcut.displayString) (status \(status)).")
         }
     }
     
-    @discardableResult
-    private func checkEvent(_ event: NSEvent) -> Bool {
-        guard let shortcut = currentShortcut else { return false }
-        
-        let flags = event.modifierFlags.intersection([.command, .option, .shift, .control])
-        let expectedFlags = NSEvent.ModifierFlags(rawValue: shortcut.modifierFlags).intersection([.command, .option, .shift, .control])
-        
-        if event.keyCode == shortcut.keyCode && flags == expectedFlags {
-            DispatchQueue.main.async { [weak self] in
-                self?.onShortcutTriggered?()
-            }
-            return true
+    private func unregisterHotKey() {
+        if let ref = hotKeyRef {
+            UnregisterEventHotKey(ref)
+            hotKeyRef = nil
         }
-        return false
+    }
+    
+    /// Releases the hot key while the shortcut recorder is capturing keys, so pressing the
+    /// current shortcut is recorded instead of toggling the shelf.
+    func suspend() {
+        isSuspended = true
+        unregisterHotKey()
+    }
+    
+    func resume() {
+        isSuspended = false
+        registerHotKey()
     }
 }
 

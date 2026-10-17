@@ -19,10 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.shelfWindow.showNear(point: mousePoint)
             }
         }
+        ShakeDetector.shared.allowsShakeWithoutDrag = { [weak self] in
+            self?.shelfWindow.isShelfVisible == true && ShakeDetector.shared.isShakeCloseEnabled
+        }
         ShakeDetector.shared.start()
-        
-        // Initial auto-clean
-        AutoCleanManager.shared.performCleanup()
         
         print("MacFileRelay (Mac 文件中转站) initialized successfully.")
     }

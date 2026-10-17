@@ -33,10 +33,7 @@ final class LocalizationManager {
         switch key {
         // Shelf Header
         case "shelf_title": return isZh ? "文件中转站" : "File Relay"
-        case "empty_state": return isZh ? "空空如也" : "Empty"
-        case "items_count": return isZh ? "%d 项 · %@" : "%d items · %@"
-        case "auto_clean_badge": return isZh ? "· %dh 自动清理" : "· %dh auto-clean"
-        case "manual_clean_badge": return isZh ? "· 手动清理" : "· Manual clean"
+        case "items_count": return isZh ? "%d / %d 项 · %@" : "%d / %d items · %@"
         
         // Tooltips & Buttons
         case "btn_close": return isZh ? "关闭" : "Close"
@@ -45,6 +42,12 @@ final class LocalizationManager {
         case "btn_clear": return isZh ? "清空全部" : "Clear All"
         case "btn_clear_hotkey": return isZh ? "清除快捷键 (不绑定)" : "Clear Shortcut (Unbind)"
         case "quicklook": return isZh ? "空格预览" : "Quick Look"
+        case "btn_cancel": return isZh ? "取消" : "Cancel"
+        
+        // Clear-All Confirmation
+        case "clear_confirm_title": return isZh ? "清空中转站？" : "Clear the shelf?"
+        case "clear_confirm_message": return isZh ? "%d 个文件会被移到废纸篓，需要时可以从废纸篓恢复。" : "%d files will be moved to the Trash. You can restore them from there."
+        case "clear_confirm_ok": return isZh ? "移到废纸篓" : "Move to Trash"
         
         // Empty State
         case "empty_title": return isZh ? "拖入任意文件暂存" : "Drop files here to relay"
@@ -53,18 +56,9 @@ final class LocalizationManager {
         case "menu_toggle": return isZh ? "展开/收起文件中转站 (%@)" : "Toggle File Relay (%@)"
         case "menu_toggle_no_key": return isZh ? "展开/收起文件中转站" : "Toggle File Relay"
         case "menu_settings": return isZh ? "偏好设置..." : "Preferences..."
-        case "menu_autoclean": return isZh ? "自动清理设置" : "Auto-Clean Retention"
         case "menu_clear": return isZh ? "清空中转站全部文件" : "Clear All Files"
         case "menu_open_folder": return isZh ? "在访达中打开中转目录" : "Open Storage in Finder"
         case "menu_quit": return isZh ? "退出 Mac 文件中转站" : "Quit MacFileRelay"
-        
-        // Auto-Clean Options
-        case "autoclean_1h": return isZh ? "1 小时后自动清理" : "Auto-clean after 1 hour"
-        case "autoclean_12h": return isZh ? "12 小时后自动清理" : "Auto-clean after 12 hours"
-        case "autoclean_24h": return isZh ? "24 小时后自动清理 (推荐)" : "Auto-clean after 24 hours (Default)"
-        case "autoclean_3d": return isZh ? "3 天后自动清理" : "Auto-clean after 3 days"
-        case "autoclean_7d": return isZh ? "7 天后自动清理" : "Auto-clean after 7 days"
-        case "autoclean_never": return isZh ? "永不自动清理 (仅手动)" : "Never (Manual only)"
         
         // Settings Window
         case "settings_title": return isZh ? "偏好设置 - Mac 文件中转站" : "Preferences - MacFileRelay"
@@ -73,7 +67,10 @@ final class LocalizationManager {
         case "settings_hotkey": return isZh ? "全局呼出快捷键：" : "Global Shortcut:"
         case "settings_hotkey_hint": return isZh ? "点击录制新按键，点 ✖️ 可不绑定快捷键" : "Click to record, or click ✖️ to unbind shortcut"
         case "hotkey_none": return isZh ? "无" : "None"
-        case "settings_autoclean": return isZh ? "自动清理设置：" : "Auto-Clean Retention:"
+        case "settings_max_items": return isZh ? "最多保留文件数：" : "Max Files Kept:"
+        case "settings_max_items_hint": return isZh ? "范围 5–100，超出时最早存入的文件会移到废纸篓" : "5–100. Oldest files move to the Trash when exceeded."
+        
+        case "settings_hover_preview": return isZh ? "鼠标在图片上停留 1 秒时显示大图预览" : "Preview images after hovering for 1 second"
         
         // Shake Settings
         case "settings_shake": return isZh ? "启用光标摇晃手势 (拖拽摇晃即出)" : "Enable shake cursor gesture to summon"

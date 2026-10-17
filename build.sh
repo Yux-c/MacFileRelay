@@ -26,7 +26,4 @@ touch /Applications/MacFileRelay.app
 echo "✅ Build and install complete!"
 echo "🚀 Launching MacFileRelay.app..."
 killall -9 MacFileRelay 2>/dev/null || true
-killall -9 ShakeDrop 2>/dev/null || true
-killall -9 NotchDrop 2>/dev/null || true
-rm -rf /Applications/ShakeDrop.app /Applications/NotchDrop.app 2>/dev/null || true
 open /Applications/MacFileRelay.app

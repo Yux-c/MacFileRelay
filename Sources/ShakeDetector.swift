@@ -42,44 +42,34 @@ final class ShakeDetector {
     static let shared = ShakeDetector()
     var onShake: ((NSPoint) -> Void)?
     
+    /// Whether a shake without a file drag may trigger (shake-to-close while the shelf is open).
+    var allowsShakeWithoutDrag: () -> Bool = { false }
+    
     private let sensitivityKey = "MacFileRelay_ShakeSensitivity"
     private let enableShakeKey = "MacFileRelay_EnableShake"
     private let enableShakeCloseKey = "MacFileRelay_EnableShakeClose"
     
+    // Settings are cached: the mouse monitor runs on every pointer event.
+    
     // Default: Enabled (true)
     var isShakeEnabled: Bool {
-        get {
-            if UserDefaults.standard.object(forKey: enableShakeKey) == nil {
-                return true
+        didSet {
+            UserDefaults.standard.set(isShakeEnabled, forKey: enableShakeKey)
+            if isShakeEnabled {
+                start()
+            } else {
+                stop()
             }
-            return UserDefaults.standard.bool(forKey: enableShakeKey)
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: enableShakeKey)
         }
     }
     
     // Default: Enabled (true)
     var isShakeCloseEnabled: Bool {
-        get {
-            if UserDefaults.standard.object(forKey: enableShakeCloseKey) == nil {
-                return true
-            }
-            return UserDefaults.standard.bool(forKey: enableShakeCloseKey)
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: enableShakeCloseKey)
-        }
+        didSet { UserDefaults.standard.set(isShakeCloseEnabled, forKey: enableShakeCloseKey) }
     }
     
     var sensitivity: ShakeSensitivity {
-        get {
-            let val = UserDefaults.standard.integer(forKey: sensitivityKey)
-            return (val >= 1 && val <= 5) ? (ShakeSensitivity(rawValue: val) ?? .normal) : .normal
-        }
-        set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: sensitivityKey)
-        }
+        didSet { UserDefaults.standard.set(sensitivity.rawValue, forKey: sensitivityKey) }
     }
     
     private var samplePoints: [(x: CGFloat, time: TimeInterval)] = []
@@ -88,19 +78,32 @@ final class ShakeDetector {
     private var lastReversalTime: TimeInterval = 0
     private var lastTriggerTime: TimeInterval = 0
     
+    /// Drag pasteboard change count at the last mouse-down. It changes once a real
+    /// drag session (files, images, links) starts, unlike moving windows or selecting text.
+    private var dragChangeCountAtMouseDown = NSPasteboard(name: .drag).changeCount
+    
     private var globalMonitor: Any?
     private var localMonitor: Any?
     
+    private init() {
+        let defaults = UserDefaults.standard
+        isShakeEnabled = defaults.object(forKey: enableShakeKey) as? Bool ?? true
+        isShakeCloseEnabled = defaults.object(forKey: enableShakeCloseKey) as? Bool ?? true
+        let val = defaults.integer(forKey: sensitivityKey)
+        sensitivity = ShakeSensitivity(rawValue: val) ?? .normal
+    }
+    
     func start() {
         stop()
-        let mask: NSEvent.EventTypeMask = [.leftMouseDragged, .mouseMoved]
+        guard isShakeEnabled else { return }
+        let mask: NSEvent.EventTypeMask = [.leftMouseDown, .leftMouseDragged, .mouseMoved]
         
-        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] _ in
-            self?.handleMovement(point: NSEvent.mouseLocation)
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] event in
+            self?.handle(event)
         }
         
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: mask) { [weak self] event in
-            self?.handleMovement(point: NSEvent.mouseLocation)
+            self?.handle(event)
             return event
         }
     }
@@ -116,9 +119,27 @@ final class ShakeDetector {
         }
     }
     
-    private func handleMovement(point: NSPoint) {
-        guard isShakeEnabled else { return }
-        
+    private func handle(_ event: NSEvent) {
+        switch event.type {
+        case .leftMouseDown:
+            dragChangeCountAtMouseDown = NSPasteboard(name: .drag).changeCount
+            resetTracking()
+        case .leftMouseDragged:
+            handleMovement(point: NSEvent.mouseLocation, isMouseDragging: true)
+        default:
+            // Plain pointer movement only matters for shake-to-close.
+            guard allowsShakeWithoutDrag() else { return }
+            handleMovement(point: NSEvent.mouseLocation, isMouseDragging: false)
+        }
+    }
+    
+    private func resetTracking() {
+        samplePoints.removeAll()
+        directionReversals = 0
+        lastDirection = 0
+    }
+    
+    private func handleMovement(point: NSPoint, isMouseDragging: Bool) {
         let now = Date().timeIntervalSinceReferenceDate
         // 0.35s snappy cooldown after triggering so shake-again immediately closes!
         if now - lastTriggerTime < 0.35 { return }
@@ -126,7 +147,7 @@ final class ShakeDetector {
         let config = sensitivity
         
         samplePoints.append((x: point.x, time: now))
-        samplePoints = samplePoints.filter { now - $0.time < config.timeWindow }
+        samplePoints.removeAll { now - $0.time >= config.timeWindow }
         
         guard samplePoints.count >= 3 else { return }
         
@@ -141,14 +162,20 @@ final class ShakeDetector {
                 lastReversalTime = now
                 
                 if directionReversals >= config.requiredReversals {
+                    // Only a drag carrying content counts, unless shaking without a drag is allowed.
+                    let isContentDrag = isMouseDragging && NSPasteboard(name: .drag).changeCount != dragChangeCountAtMouseDown
+                    guard isContentDrag || allowsShakeWithoutDrag() else {
+                        resetTracking()
+                        return
+                    }
+                    
                     lastTriggerTime = now
-                    directionReversals = 0
-                    samplePoints.removeAll()
-                    lastDirection = 0
+                    resetTracking()
                     
                     DispatchQueue.main.async { [weak self] in
                         self?.onShake?(point)
                     }
+                    return
                 }
             }
             lastDirection = currentDir

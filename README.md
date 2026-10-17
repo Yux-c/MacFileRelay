@@ -20,13 +20,14 @@
    - 拖拽任意文件时，在屏幕任何位置**轻轻左右晃动两下光标**，毛玻璃中转站立刻在鼠标旁就地展开！
    - 原地暂存、原地释放，无需特意拖到屏幕边缘或顶部。
 2. **📑 多文件连续暂存**：
-   - 支持多次分批拖入任意数量的文件，横向流式列表，支持触摸板/滚轮自由滑动浏览。
-3. **⏱️ 智能定时自动清理**：
-   - 文件存入时自动开启倒计时（支持 1h / 12h / 24h / 3天 / 7天 / 仅手动），过期后**安全移入系统废纸篓**，绝不残留文件垃圾。
+   - 支持多次分批拖入文件，紧凑的单行列表：左侧按格式显示小图标（图片、PDF、视频、音频、压缩包、表格、文档、代码等），右侧显示大小，窗口高度随文件数自动伸缩。
+   - 鼠标在图片上停留 1 秒，旁边浮出大图预览，移到其他图片即时切换；其他格式只在列表中显示（可在偏好设置中关闭预览）。
+3. **🗂️ 固定数量自动轮换**：
+   - 中转站默认最多保留 20 个文件（偏好设置中可调，范围 5–100），超出时最早存入的文件会**自动移入系统废纸篓**，随时可以恢复。
 4. **📤 极速拖出到微信/邮件/访达**：
-   - 鼠标按住卡片直接拖到聊天窗口、邮件或任意文件夹即可完成发送。
+   - 鼠标按住文件直接拖到聊天窗口、邮件或任意文件夹即可完成发送。
 5. **👀 空格秒级预览 (QuickLook)**：
-   - 悬停卡片按 `Space` 空格键或点击 `👁️` 眼睛图标，立即调出 macOS 原生 QuickLook 大图/音视频预览。
+   - 悬停文件按 `Space` 空格键或点击 `👁️` 眼睛图标，立即调出 macOS 原生 QuickLook 大图/音视频预览。
 6. **⚡ 极致轻量与省电**：
    - 零网页套壳，纯原生编译，待命时 **0.0% CPU**，内存仅十几 MB。
 
@@ -37,8 +38,8 @@
 | **就地唤出 / 立即关闭** | 拖拽文件时**摇晃鼠标** | 晃一下打开，再晃一下立刻秒关 |
 | **快捷打开 / 隐藏** | **`⌥ + D`** (Option + D) | 随时在鼠标位置召唤或收起中转站 |
 | **空格快速预览** | **`Space`** (空格键) 或点击 **`👁️`** | 调出 macOS 原生 QuickLook 预览 |
-| **按住直接拖出** | 按住任意卡片拖拽 | 直接拖出到微信、邮件或访达 |
-| **偏好设置** | 点击右上角 **`⚙️`** 或按 **`⌘ + ,`** | 自定义语言、快捷键、灵敏度、自动清理周期等 |
+| **按住直接拖出** | 按住任意文件拖拽 | 直接拖出到微信、邮件或访达 |
+| **偏好设置** | 点击右上角 **`⚙️`** 或按 **`⌘ + ,`** | 自定义语言、快捷键、灵敏度、最多保留文件数等 |
 | **菜单栏管理** | 点击顶部菜单栏 **`📥`** 小图标 | 快速管理中转站 |
 
 ---
@@ -50,8 +51,9 @@
 ### 🌟 Key Features
 
 - **Shake to Summon**: Simply shake your cursor while dragging files, and the relay shelf appears right next to your pointer.
-- **Multi-File Shelf**: Drop multiple files at once or append over time with horizontal scrolling.
-- **Auto-Cleanup Engine**: Automatically moves stale files to the macOS Trash after your chosen retention period (1h, 12h, 24h, 3d, 7d).
+- **Multi-File Shelf**: Drop multiple files at once or append over time; a compact one-line-per-file list with format icons and sizes that grows with its contents.
+- **Image Hover Preview**: Rest the pointer on an image for a second to see a large preview beside the shelf; other files stay in the list.
+- **Fixed-Size Rotation**: Keeps up to 20 files by default (adjustable from 5 to 100); when the shelf is full, the oldest files move to the macOS Trash.
 - **Native QuickLook**: Spacebar preview for images, audio, video, PDFs, and code.
 - **Native & Featherlight**: Built in pure Swift 6 + AppKit. 0.0% idle CPU and minimal RAM footprint.
 

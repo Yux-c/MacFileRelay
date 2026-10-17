@@ -46,6 +46,7 @@ final class HotkeyRecorderView: NSButton {
     
     func startRecording() {
         isRecording = true
+        HotkeyManager.shared.suspend()
         updateTitle()
         window?.makeFirstResponder(self)
         
@@ -85,6 +86,7 @@ final class HotkeyRecorderView: NSButton {
             NSEvent.removeMonitor(monitor)
             localMonitor = nil
         }
+        HotkeyManager.shared.resume()
         updateTitle()
     }
     
@@ -113,9 +115,13 @@ final class SettingsWindowController: NSWindowController {
     private let hotkeyResetBtn = NSButton()
     private let hotkeyHint = NSTextField(labelWithString: "")
     
-    // AutoClean Section
-    private let autoCleanTitle = NSTextField(labelWithString: "")
-    private let autoCleanPopup = NSPopUpButton()
+    // Max Items Section
+    private let maxItemsTitle = NSTextField(labelWithString: "")
+    private let maxItemsField = NSTextField()
+    private let maxItemsStepper = NSStepper()
+    private let maxItemsHint = NSTextField(labelWithString: "")
+    
+    private let hoverPreviewCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     
     // Shake Section
     private let shakeCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
@@ -130,7 +136,7 @@ final class SettingsWindowController: NSWindowController {
     
     init() {
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 440),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 446),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -219,17 +225,44 @@ final class SettingsWindowController: NSWindowController {
         
         currentY -= 56
         
-        // 3. AutoClean Section
-        autoCleanTitle.font = NSFont.systemFont(ofSize: 12, weight: .medium)
-        autoCleanTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
-        visualEffect.addSubview(autoCleanTitle)
+        // 3. Max files kept
+        maxItemsTitle.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        maxItemsTitle.frame = NSRect(x: 24, y: currentY, width: 140, height: 22)
+        visualEffect.addSubview(maxItemsTitle)
         
-        autoCleanPopup.frame = NSRect(x: 170, y: currentY - 2, width: 250, height: 26)
-        autoCleanPopup.target = self
-        autoCleanPopup.action = #selector(autoCleanChanged)
-        visualEffect.addSubview(autoCleanPopup)
+        let range = StorageManager.maxItemsRange
+        // Out-of-range input is clamped in maxItemsFieldChanged rather than rejected.
+        let formatter = NumberFormatter()
+        formatter.allowsFloats = false
+        maxItemsField.formatter = formatter
+        maxItemsField.alignment = .center
+        maxItemsField.frame = NSRect(x: 170, y: currentY, width: 56, height: 22)
+        maxItemsField.target = self
+        maxItemsField.action = #selector(maxItemsFieldChanged)
+        visualEffect.addSubview(maxItemsField)
         
-        currentY -= 48
+        maxItemsStepper.minValue = Double(range.lowerBound)
+        maxItemsStepper.maxValue = Double(range.upperBound)
+        maxItemsStepper.increment = 1
+        maxItemsStepper.valueWraps = false
+        maxItemsStepper.frame = NSRect(x: 230, y: currentY - 1, width: 19, height: 24)
+        maxItemsStepper.target = self
+        maxItemsStepper.action = #selector(maxItemsStepperChanged)
+        visualEffect.addSubview(maxItemsStepper)
+        
+        maxItemsHint.font = NSFont.systemFont(ofSize: 10, weight: .regular)
+        maxItemsHint.textColor = .secondaryLabelColor
+        maxItemsHint.frame = NSRect(x: 170, y: currentY - 20, width: 270, height: 16)
+        visualEffect.addSubview(maxItemsHint)
+        
+        currentY -= 50
+        
+        hoverPreviewCheckbox.frame = NSRect(x: 24, y: currentY, width: 400, height: 20)
+        hoverPreviewCheckbox.target = self
+        hoverPreviewCheckbox.action = #selector(hoverPreviewToggled)
+        visualEffect.addSubview(hoverPreviewCheckbox)
+        
+        currentY -= 32
         
         // 4. Shake Section
         shakeCheckbox.frame = NSRect(x: 24, y: currentY, width: 400, height: 20)
@@ -292,25 +325,14 @@ final class SettingsWindowController: NSWindowController {
         hotkeyHint.stringValue = L("settings_hotkey_hint")
         hotkeyRecorder.updateTitle()
         
-        autoCleanTitle.stringValue = L("settings_autoclean")
+        maxItemsTitle.stringValue = L("settings_max_items")
+        maxItemsHint.stringValue = L("settings_max_items_hint")
+        let maxItems = StorageManager.shared.maxItems
+        maxItemsField.integerValue = maxItems
+        maxItemsStepper.integerValue = maxItems
         
-        autoCleanPopup.removeAllItems()
-        let options: [(String, Int)] = [
-            (L("autoclean_1h"), 1),
-            (L("autoclean_12h"), 12),
-            (L("autoclean_24h"), 24),
-            (L("autoclean_3d"), 72),
-            (L("autoclean_7d"), 168),
-            (L("autoclean_never"), 0)
-        ]
-        let currentHours = AutoCleanManager.shared.retentionHours
-        for (idx, opt) in options.enumerated() {
-            autoCleanPopup.addItem(withTitle: opt.0)
-            autoCleanPopup.item(at: idx)?.tag = opt.1
-            if opt.1 == currentHours {
-                autoCleanPopup.selectItem(at: idx)
-            }
-        }
+        hoverPreviewCheckbox.title = L("settings_hover_preview")
+        hoverPreviewCheckbox.state = HoverPreviewController.shared.isEnabled ? .on : .off
         
         let isShakeEnabled = ShakeDetector.shared.isShakeEnabled
         shakeCheckbox.title = L("settings_shake")
@@ -373,10 +395,21 @@ final class SettingsWindowController: NSWindowController {
         hotkeyRecorder.updateTitle()
     }
     
-    @objc private func autoCleanChanged() {
-        if let selectedItem = autoCleanPopup.selectedItem {
-            AutoCleanManager.shared.retentionHours = selectedItem.tag
-        }
+    @objc private func maxItemsStepperChanged() {
+        maxItemsField.integerValue = maxItemsStepper.integerValue
+        StorageManager.shared.maxItems = maxItemsStepper.integerValue
+    }
+    
+    @objc private func maxItemsFieldChanged() {
+        let range = StorageManager.maxItemsRange
+        let value = min(max(maxItemsField.integerValue, range.lowerBound), range.upperBound)
+        maxItemsField.integerValue = value
+        maxItemsStepper.integerValue = value
+        StorageManager.shared.maxItems = value
+    }
+    
+    @objc private func hoverPreviewToggled() {
+        HoverPreviewController.shared.isEnabled = (hoverPreviewCheckbox.state == .on)
     }
     
     @objc private func shakeToggled() {

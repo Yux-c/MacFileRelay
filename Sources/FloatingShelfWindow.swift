@@ -2,27 +2,6 @@ import Cocoa
 import QuartzCore
 import QuickLookUI
 
-final class HorizontalScrollView: NSScrollView {
-    override func scrollWheel(with event: NSEvent) {
-        // Convert vertical mouse scroll wheel (deltaY) into horizontal scrolling
-        if event.deltaX == 0 && event.deltaY != 0 {
-            let delta = event.hasPreciseScrollingDeltas ? event.scrollingDeltaY : (event.deltaY * 20.0)
-            let currentOrigin = documentVisibleRect.origin
-            var newX = currentOrigin.x - delta
-            
-            if let docView = documentView {
-                let maxX = max(0, docView.bounds.width - bounds.width)
-                newX = max(0, min(newX, maxX))
-            }
-            
-            contentView.scroll(to: NSPoint(x: newX, y: currentOrigin.y))
-            reflectScrolledClipView(contentView)
-            return
-        }
-        super.scrollWheel(with: event)
-    }
-}
-
 final class DraggableHeaderView: NSView {
     override var mouseDownCanMoveWindow: Bool {
         return true
@@ -45,22 +24,21 @@ final class FloatingShelfView: NSView {
     let backgroundEffect = NSVisualEffectView()
     let headerView = DraggableHeaderView()
     let titleLabel = NSTextField(labelWithString: "")
-    let countLabel = NSTextField(labelWithString: "")
-    let autoCleanBadge = NSTextField(labelWithString: "")
+    let importSpinner = NSProgressIndicator()
     
     let openFolderButton = NSButton()
     let clearAllButton = NSButton()
     let settingsButton = NSButton()
     let closeButton = NSButton()
     
-    let scrollView = HorizontalScrollView()
-    let shelfGridView = ShelfGridView()
+    let scrollView = NSScrollView()
+    let shelfListView = ShelfListView()
     
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
         setupViews()
-        registerForDraggedTypes([.fileURL, .URL, .png, .tiff])
+        registerForDraggedTypes(DropReceiver.draggedTypes)
         
         NotificationCenter.default.addObserver(self, selector: #selector(updateLocalizedTexts), name: .languageDidChange, object: nil)
     }
@@ -99,33 +77,20 @@ final class FloatingShelfView: NSView {
         titleLabel.textColor = .labelColor
         headerView.addSubview(titleLabel)
         
-        countLabel.translatesAutoresizingMaskIntoConstraints = false
-        countLabel.isBordered = false
-        countLabel.drawsBackground = false
-        countLabel.isEditable = false
-        countLabel.isSelectable = false
-        countLabel.font = NSFont.systemFont(ofSize: 11, weight: .medium)
-        countLabel.textColor = .secondaryLabelColor
-        headerView.addSubview(countLabel)
-        
-        autoCleanBadge.translatesAutoresizingMaskIntoConstraints = false
-        autoCleanBadge.isBordered = false
-        autoCleanBadge.drawsBackground = false
-        autoCleanBadge.isEditable = false
-        autoCleanBadge.isSelectable = false
-        autoCleanBadge.font = NSFont.systemFont(ofSize: 10, weight: .regular)
-        autoCleanBadge.textColor = .tertiaryLabelColor
-        headerView.addSubview(autoCleanBadge)
+        importSpinner.translatesAutoresizingMaskIntoConstraints = false
+        importSpinner.style = .spinning
+        importSpinner.controlSize = .small
+        importSpinner.isDisplayedWhenStopped = false
+        headerView.addSubview(importSpinner)
         
         NSLayoutConstraint.activate([
+            importSpinner.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 8),
+            importSpinner.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            importSpinner.widthAnchor.constraint(equalToConstant: 12),
+            importSpinner.heightAnchor.constraint(equalToConstant: 12),
+            
             titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            
-            countLabel.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 8),
-            countLabel.firstBaselineAnchor.constraint(equalTo: titleLabel.firstBaselineAnchor),
-            
-            autoCleanBadge.leadingAnchor.constraint(equalTo: countLabel.trailingAnchor, constant: 6),
-            autoCleanBadge.firstBaselineAnchor.constraint(equalTo: titleLabel.firstBaselineAnchor)
+            titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
         ])
         
         // Close Button
@@ -176,19 +141,29 @@ final class FloatingShelfView: NSView {
         clearAllButton.action = #selector(clearAllClicked)
         headerView.addSubview(clearAllButton)
         
-        // ScrollView - Extended height with ample top/bottom margin & mouse wheel support
-        scrollView.frame = NSRect(x: 6, y: 6, width: bounds.width - 12, height: bounds.height - 46)
+        // Vertical file list below the header
+        scrollView.frame = NSRect(x: 6, y: 6, width: bounds.width - 12, height: bounds.height - FloatingShelfWindow.chromeHeight)
         scrollView.autoresizingMask = [.width, .height]
         scrollView.drawsBackground = false
-        scrollView.hasHorizontalScroller = true
-        scrollView.hasVerticalScroller = false
+        scrollView.hasHorizontalScroller = false
+        scrollView.hasVerticalScroller = true
         scrollView.autohidesScrollers = true
         
-        shelfGridView.frame = NSRect(x: 0, y: 0, width: scrollView.bounds.width, height: scrollView.bounds.height)
-        shelfGridView.onItemsUpdated = { [weak self] in
+        shelfListView.frame = NSRect(x: 0, y: 0, width: scrollView.bounds.width, height: scrollView.bounds.height)
+        StorageManager.shared.onItemsChanged = { [weak self] _ in
+            self?.windowController?.fitHeightToContent()
+            self?.shelfListView.reload()
             self?.updateItemCount()
         }
-        scrollView.documentView = shelfGridView
+        // Large copies run in the background; show a spinner while they are in flight.
+        StorageManager.shared.onImportStateChanged = { [weak self] isImporting in
+            if isImporting {
+                self?.importSpinner.startAnimation(nil)
+            } else {
+                self?.importSpinner.stopAnimation(nil)
+            }
+        }
+        scrollView.documentView = shelfListView
         backgroundEffect.addSubview(scrollView)
         
         updateLocalizedTexts()
@@ -205,24 +180,18 @@ final class FloatingShelfView: NSView {
         clearAllButton.toolTip = L("btn_clear")
         
         updateItemCount()
-        shelfGridView.updateEmptyStateText()
+        shelfListView.updateEmptyStateText()
     }
     
     func updateItemCount() {
         let count = StorageManager.shared.items.count
         
+        // The header stays clean; count and size are available on hover.
         if count > 0 {
-            let size = StorageManager.shared.totalFormattedSize
-            countLabel.stringValue = String(format: L("items_count"), count, size)
+            titleLabel.toolTip = String(format: L("items_count"), count, StorageManager.shared.maxItems,
+                                        StorageManager.shared.totalFormattedSize)
         } else {
-            countLabel.stringValue = L("empty_state")
-        }
-        
-        let hours = AutoCleanManager.shared.retentionHours
-        if hours > 0 {
-            autoCleanBadge.stringValue = String(format: L("auto_clean_badge"), hours)
-        } else {
-            autoCleanBadge.stringValue = L("manual_clean_badge")
+            titleLabel.toolTip = nil
         }
         
         clearAllButton.isHidden = count == 0
@@ -234,9 +203,24 @@ final class FloatingShelfView: NSView {
     
     @objc private func clearAllClicked() {
         NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
-        StorageManager.shared.clearAll()
-        shelfGridView.reload()
-        updateItemCount()
+        if FloatingShelfView.confirmClearAll() {
+            StorageManager.shared.clearAll()
+        }
+    }
+    
+    /// Asks before moving every shelved file to the Trash.
+    static func confirmClearAll() -> Bool {
+        let count = StorageManager.shared.items.count
+        guard count > 0 else { return false }
+        
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L("clear_confirm_title")
+        alert.informativeText = String(format: L("clear_confirm_message"), count)
+        alert.addButton(withTitle: L("clear_confirm_ok"))
+        alert.addButton(withTitle: L("btn_cancel"))
+        NSApp.activate(ignoringOtherApps: true)
+        return alert.runModal() == .alertFirstButtonReturn
     }
     
     @objc private func openFolderClicked() {
@@ -248,34 +232,23 @@ final class FloatingShelfView: NSView {
     }
     
     // MARK: - Drag & Drop Destination
+    override func resizeSubviews(withOldSize oldSize: NSSize) {
+        super.resizeSubviews(withOldSize: oldSize)
+        shelfListView.fitToVisibleArea()
+    }
+    
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
         windowController?.cancelRetractTimer()
-        return .copy
+        HoverPreviewController.shared.hide()
+        return DropReceiver.operation(for: sender)
     }
     
     override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-        return .copy
+        return DropReceiver.operation(for: sender)
     }
     
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        guard let pasteboard = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL] else {
-            return false
-        }
-        
-        var anyAdded = false
-        for url in pasteboard {
-            if StorageManager.shared.addFile(from: url) {
-                anyAdded = true
-            }
-        }
-        
-        if anyAdded {
-            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-            NSSound(named: "Pop")?.play()
-            shelfGridView.reload()
-            updateItemCount()
-        }
-        return anyAdded
+        return DropReceiver.receive(sender)
     }
     
     override func mouseEntered(with event: NSEvent) {
@@ -288,13 +261,21 @@ final class FloatingShelfView: NSView {
 }
 
 final class FloatingShelfWindow: NSPanel {
+    static let width: CGFloat = 280
+    /// Height of the empty shelf, which shows the drop hint.
+    static let emptyHeight: CGFloat = 150
+    static let minHeight: CGFloat = 110
+    static let maxHeight: CGFloat = 400
+    /// Header plus bottom inset around the list.
+    static let chromeHeight: CGFloat = 44
+    
     let shelfView: FloatingShelfView
     var isShelfVisible = false
     private var retractTimer: Timer?
     
     init() {
-        let width: CGFloat = 460
-        let height: CGFloat = 185
+        let width = Self.width
+        let height = Self.emptyHeight
         
         shelfView = FloatingShelfView(frame: NSRect(x: 0, y: 0, width: width, height: height))
         
@@ -328,7 +309,7 @@ final class FloatingShelfWindow: NSPanel {
             
             if flags.isEmpty {
                 if event.keyCode == 49 { // Spacebar
-                    if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
+                    if let targetURL = self.shelfView.shelfListView.currentFocusedItemURL {
                         QuickLookCoordinator.shared.preview(url: targetURL)
                         return nil
                     }
@@ -340,13 +321,16 @@ final class FloatingShelfWindow: NSPanel {
             return event
         }
         
+        // Global events reach us while another app is frontmost (the panel never activates the app),
+        // so only react while the pointer is over a row; otherwise typing a space elsewhere would
+        // pop up QuickLook and steal focus.
         NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self, self.isShelfVisible else { return }
             let flags = event.modifierFlags.intersection([.command, .option, .shift, .control])
             
             if flags.isEmpty {
                 if event.keyCode == 49 { // Spacebar
-                    if let targetURL = self.shelfView.shelfGridView.currentFocusedItemURL {
+                    if let targetURL = self.shelfView.shelfListView.hoveredItem?.url {
                         DispatchQueue.main.async {
                             QuickLookCoordinator.shared.preview(url: targetURL)
                         }
@@ -358,9 +342,7 @@ final class FloatingShelfWindow: NSPanel {
     
     func showNear(point: NSPoint) {
         cancelRetractTimer()
-        AutoCleanManager.shared.performCleanup()
-        shelfView.shelfGridView.reload()
-        shelfView.updateItemCount()
+        StorageManager.shared.reloadItems()
         
         let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? NSScreen.main!
         let visibleFrame = screen.visibleFrame
@@ -404,6 +386,11 @@ final class FloatingShelfWindow: NSPanel {
         cancelRetractTimer()
         guard isShelfVisible else { return }
         
+        // Flip the state before the fade-out so a show request during the animation is honoured.
+        isShelfVisible = false
+        shelfView.shelfListView.hoveredItem = nil
+        HoverPreviewController.shared.hide()
+        
         if QLPreviewPanel.shared()?.isVisible == true {
             QLPreviewPanel.shared()?.orderOut(nil)
         }
@@ -413,9 +400,41 @@ final class FloatingShelfWindow: NSPanel {
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             self.animator().alphaValue = 0.0
         }, completionHandler: {
+            // The shelf may have been shown again while fading out.
+            guard !self.isShelfVisible else { return }
             self.orderOut(nil)
-            self.isShelfVisible = false
         })
+    }
+    
+    /// Height that fits the current files: compact when empty, growing with the list up to `maxHeight`.
+    var preferredHeight: CGFloat {
+        let count = StorageManager.shared.items.count
+        guard count > 0 else { return Self.emptyHeight }
+        let listHeight = ShelfListView.contentHeight(forItemCount: count)
+        return min(max(Self.chromeHeight + listHeight, Self.minHeight), Self.maxHeight)
+    }
+    
+    /// Resizes to `preferredHeight`, keeping the header in place (or growing upwards at the bottom of the screen).
+    func fitHeightToContent() {
+        let newHeight = preferredHeight
+        guard abs(frame.height - newHeight) > 0.5 else { return }
+        
+        var newFrame = frame
+        newFrame.origin.y = frame.maxY - newHeight
+        newFrame.size.height = newHeight
+        if let visibleFrame = screen?.visibleFrame, newFrame.minY < visibleFrame.minY + 12 {
+            newFrame.origin.y = visibleFrame.minY + 12
+        }
+        
+        if isShelfVisible {
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.18
+                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                self.animator().setFrame(newFrame, display: true)
+            }
+        } else {
+            setFrame(newFrame, display: false)
+        }
     }
     
     func toggleShelf() {
