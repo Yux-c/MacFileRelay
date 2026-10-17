@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo "🔨 Building MacFileRelay (Mac 文件中转站) native binary..."
+echo "Building MacFileRelay (Mac 文件中转站) native binary..."
 swiftc -O -target arm64-apple-macos13.0 \
   -framework Cocoa \
   -framework QuartzCore \
@@ -10,7 +10,7 @@ swiftc -O -target arm64-apple-macos13.0 \
   Sources/*.swift \
   -o MacFileRelay
 
-echo "📦 Packaging /Applications/MacFileRelay.app..."
+echo "Packaging /Applications/MacFileRelay.app..."
 mkdir -p /Applications/MacFileRelay.app/Contents/MacOS
 mkdir -p /Applications/MacFileRelay.app/Contents/Resources
 cp MacFileRelay /Applications/MacFileRelay.app/Contents/MacOS/
@@ -23,7 +23,7 @@ chmod +x /Applications/MacFileRelay.app/Contents/MacOS/MacFileRelay
 # Refresh macOS Finder icon cache for the app
 touch /Applications/MacFileRelay.app
 
-echo "✅ Build and install complete!"
-echo "🚀 Launching MacFileRelay.app..."
+echo "Build and install complete!"
+echo "Launching MacFileRelay.app..."
 killall -9 MacFileRelay 2>/dev/null || true
 open /Applications/MacFileRelay.app
