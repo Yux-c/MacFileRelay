@@ -6,6 +6,13 @@
   <a href="https://github.com/Yux-c/MacFileRelay/releases/latest">
     <img src="https://img.shields.io/github/v/release/Yux-c/MacFileRelay?color=blue&label=%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85%E5%8C%85%20(DMG)&logo=apple" alt="Download DMG">
   </a>
+  <img src="https://img.shields.io/badge/platform-macOS%2013%2B-lightgrey?logo=apple" alt="macOS 13+">
+  <img src="https://img.shields.io/badge/Swift-AppKit-orange?logo=swift" alt="Swift">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Yux-c/MacFileRelay" alt="License"></a>
+</p>
+
+<p align="center">
+  <img src="docs/screenshot.png" width="560" alt="MacFileRelay screenshot: compact file list with format icons and an image hover preview">
 </p>
 
 ---
