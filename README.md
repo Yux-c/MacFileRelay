@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshot.png" width="560" alt="MacFileRelay screenshot: compact file list with format icons and an image hover preview">
+  <img src="docs/preview.png" width="560" alt="MacFileRelay screenshot: compact file list with format icons and an image hover preview">
 </p>
 
 ---
