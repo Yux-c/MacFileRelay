@@ -1,5 +1,13 @@
 # Mac 文件中转站 (MacFileRelay)
 
+> [!IMPORTANT]
+> **项目归档与合并说明 / Project Merged Notice**
+>
+> 本项目（MacFileRelay）的核心功能已完整合并并升级至全能截图与剪贴中转板工具 **[Myuxcc](https://github.com/Yux-c/Myuxcc)** 的「剪贴中转板」模块中（新增支持剪贴板历史自动收录、搜索过滤、一键粘贴并恢复原剪贴板、直接识别图片文字与桌面贴图等）。后续更新与维护将在新仓库继续进行，欢迎前往使用：
+> 👉 **https://github.com/Yux-c/Myuxcc**
+>
+> *This project has been merged into the clipboard & file shelf module of **[Myuxcc](https://github.com/Yux-c/Myuxcc)** (an all-in-one native macOS screenshot, scrolling capture, offline OCR, translation, screen recording & clipboard shelf app). All future updates will take place in [Yux-c/Myuxcc](https://github.com/Yux-c/Myuxcc).*
+
 <p align="center">
   <b>极简 · 原生 · 无感 · 极速的 macOS 摇晃拖拽文件中转站</b><br>
   <i>Ultra-lightweight, native macOS shake-to-drop file shelf & relay station.</i><br><br>
